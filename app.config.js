@@ -47,7 +47,19 @@ export default ({ config }) => {
             sounds: []
           }
         ]
-      ]
+      ],
+      owner: "mhassan0600",
+      runtimeVersion: {
+        policy: "appVersion"
+      },
+      updates: {
+        url: "https://u.expo.dev/0d9abf74-03e7-49a0-9f3c-b119c6694fde"
+      },
+      extra: {
+        eas: {
+          projectId: "0d9abf74-03e7-49a0-9f3c-b119c6694fde"
+        }
+      }
     }
   };
 };
