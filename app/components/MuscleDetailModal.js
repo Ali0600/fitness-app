@@ -19,8 +19,9 @@ import {
   longestRestHours,
   adherence,
   hoursSinceLastWorked,
+  lastWorkedAt,
 } from '../utils/statsUtils';
-import { formatHours } from '../utils/timeUtils';
+import { formatHours, relativeFromNow, restStatusColor } from '../utils/timeUtils';
 
 export default function MuscleDetailModal({ visible, muscle, onClose }) {
   const { workoutLog, deleteLogEntry, updateLogEntry, logWorkout } = useAppState();
@@ -33,6 +34,16 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
   const avg = avgRestIntervalHours(workoutLog, muscle.id);
   const longest = longestRestHours(workoutLog, muscle.id);
   const adh = adherence(workoutLog, muscle.id, muscle.recommendedRestHours);
+
+  const parentLast = lastWorkedAt(workoutLog, muscle.id);
+  const subGroupRows = (muscle.subGroups || []).map((sg) => {
+    const direct = lastWorkedAt(workoutLog, sg.id);
+    const effective =
+      direct && parentLast
+        ? new Date(direct) > new Date(parentLast) ? direct : parentLast
+        : direct || parentLast;
+    return { ...sg, lastWorkedAt: effective };
+  });
 
   const handleDelete = (entry) => {
     Alert.alert('Delete entry?', moment(entry.timestamp).format('LLL'), [
@@ -77,6 +88,36 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
             <Stat label="Longest rest" value={longest != null ? formatHours(longest) : '—'} />
             <Stat label="Adherence" value={adh != null ? `${Math.round(adh * 100)}%` : '—'} />
           </View>
+
+          {subGroupRows.length > 0 && (
+            <>
+              <Text style={styles.section}>Sub-groups</Text>
+              <View style={styles.subGroupCard}>
+                {subGroupRows.map((sg, i) => {
+                  const dotColor = sg.lastWorkedAt
+                    ? restStatusColor(sg.lastWorkedAt, muscle.recommendedRestHours)
+                    : '#7f8c8d';
+                  return (
+                    <View
+                      key={sg.id}
+                      style={[
+                        styles.subGroupRow,
+                        i < subGroupRows.length - 1 && styles.subGroupDivider,
+                      ]}
+                    >
+                      <View style={[styles.subDot, { backgroundColor: dotColor }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.subName}>{sg.name}</Text>
+                        <Text style={styles.subSub}>
+                          {sg.lastWorkedAt ? relativeFromNow(sg.lastWorkedAt) : 'never logged'}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
 
           <Text style={styles.section}>History</Text>
           {history.length === 0 && (
@@ -186,6 +227,29 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, fontWeight: '700', color: '#111' },
   statLabel: { fontSize: 12, color: '#666', marginTop: 2 },
   section: { fontSize: 13, fontWeight: '700', color: '#666', marginTop: 8, marginBottom: 8, textTransform: 'uppercase' },
+  subGroupCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  subGroupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  subGroupDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  subDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 12,
+  },
+  subName: { fontSize: 15, fontWeight: '500', color: '#111' },
+  subSub: { fontSize: 12, color: '#888', marginTop: 2 },
   emptyText: { color: '#999', fontSize: 14, padding: 12 },
   entry: {
     backgroundColor: 'white',
