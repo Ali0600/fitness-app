@@ -6,7 +6,7 @@ const COLOR_RECOVERING = '#e74c3c';
 const COLOR_UNKNOWN = '#7f8c8d';
 const COLOR_NEUTRAL_SKIN = '#cfd8dc';
 
-function Muscle({ muscleId, position, rotation, geometry, targetMuscleId, muscleStatus }) {
+function Muscle({ muscleId, position, rotation, scale, geometry, targetMuscleId, muscleStatus }) {
   const meshRef = useRef();
   const emissiveRef = useRef(0);
   const isTarget = muscleId === targetMuscleId;
@@ -30,7 +30,7 @@ function Muscle({ muscleId, position, rotation, geometry, targetMuscleId, muscle
   const emissiveColor = isTarget ? baseColor : '#000000';
 
   return (
-    <mesh ref={meshRef} position={position} rotation={rotation} userData={{ muscleId }}>
+    <mesh ref={meshRef} position={position} rotation={rotation} scale={scale} userData={{ muscleId }}>
       {geometry}
       <meshStandardMaterial
         color={baseColor}
@@ -106,57 +106,85 @@ export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = t
       rotation: [0, 0, 0],
       geometry: <boxGeometry args={[0.75, 0.55, 0.22]} />,
     },
-    // Shoulders — left and right
+    // Deltoid / shoulder cap — rounded dome sitting on top of the arm
     {
       muscleId: 'shoulders',
-      position: [-0.68, 1.85, 0],
+      position: [-0.72, 1.88, 0],
       rotation: [0, 0, 0],
-      geometry: <sphereGeometry args={[0.28, 20, 20]} />,
+      geometry: <sphereGeometry args={[0.24, 20, 20]} />,
     },
     {
       muscleId: 'shoulders',
-      position: [0.68, 1.85, 0],
+      position: [0.72, 1.88, 0],
       rotation: [0, 0, 0],
-      geometry: <sphereGeometry args={[0.28, 20, 20]} />,
+      geometry: <sphereGeometry args={[0.24, 20, 20]} />,
     },
-    // Biceps — front of upper arms
+    // Bicep — front half of upper arm (paired with tricep behind to form one arm tube)
     {
       muscleId: 'biceps',
-      position: [-0.78, 1.45, 0.12],
+      position: [-0.74, 1.5, 0.08],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.17, 0.17, 0.55, 16]} />,
+      geometry: <capsuleGeometry args={[0.15, 0.25, 8, 16]} />,
     },
     {
       muscleId: 'biceps',
-      position: [0.78, 1.45, 0.12],
+      position: [0.74, 1.5, 0.08],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.17, 0.17, 0.55, 16]} />,
+      geometry: <capsuleGeometry args={[0.15, 0.25, 8, 16]} />,
     },
-    // Triceps — back of upper arms
+    // Tricep — back half of upper arm
     {
       muscleId: 'triceps',
-      position: [-0.78, 1.45, -0.12],
+      position: [-0.74, 1.5, -0.08],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.17, 0.17, 0.55, 16]} />,
+      geometry: <capsuleGeometry args={[0.15, 0.25, 8, 16]} />,
     },
     {
       muscleId: 'triceps',
-      position: [0.78, 1.45, -0.12],
+      position: [0.74, 1.5, -0.08],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.17, 0.17, 0.55, 16]} />,
+      geometry: <capsuleGeometry args={[0.15, 0.25, 8, 16]} />,
     },
-    // Forearms — below elbows
+    // Forearm — tapered tube narrowing at the wrist
     {
       muscleId: 'forearms',
-      position: [-0.78, 0.92, 0],
+      position: [-0.74, 0.95, 0],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.15, 0.13, 0.5, 16]} />,
+      geometry: <cylinderGeometry args={[0.14, 0.10, 0.55, 16]} />,
     },
     {
       muscleId: 'forearms',
-      position: [0.78, 0.92, 0],
+      position: [0.74, 0.95, 0],
       rotation: [0, 0, 0],
-      geometry: <cylinderGeometry args={[0.15, 0.13, 0.5, 16]} />,
+      geometry: <cylinderGeometry args={[0.14, 0.10, 0.55, 16]} />,
+    },
+    // Hand — flattened palm/closed-fist shape (decorative)
+    {
+      muscleId: '__hand_l',
+      position: [-0.74, 0.55, 0],
+      rotation: [0, 0, 0],
+      scale: [1.1, 1.6, 0.55],
+      geometry: <sphereGeometry args={[0.08, 16, 16]} />,
+    },
+    {
+      muscleId: '__hand_r',
+      position: [0.74, 0.55, 0],
+      rotation: [0, 0, 0],
+      scale: [1.1, 1.6, 0.55],
+      geometry: <sphereGeometry args={[0.08, 16, 16]} />,
+    },
+    // Thumb — small bump on the inner-front edge of each palm
+    {
+      muscleId: '__thumb_l',
+      position: [-0.66, 0.61, 0.04],
+      rotation: [0, 0, 0],
+      geometry: <sphereGeometry args={[0.035, 12, 12]} />,
+    },
+    {
+      muscleId: '__thumb_r',
+      position: [0.66, 0.61, 0.04],
+      rotation: [0, 0, 0],
+      geometry: <sphereGeometry args={[0.035, 12, 12]} />,
     },
     // Glutes — butt area
     {
@@ -220,6 +248,7 @@ export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = t
           muscleId={m.muscleId}
           position={m.position}
           rotation={m.rotation}
+          scale={m.scale}
           geometry={m.geometry}
           targetMuscleId={targetMuscleId}
           muscleStatus={muscleStatus}
