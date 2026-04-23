@@ -4,10 +4,14 @@ import { useFrame } from './r3f';
 
 const COLOR_RESTED = '#2ecc71';
 const COLOR_RECOVERING = '#e74c3c';
-// "Unknown" (never logged): slightly shaded skin tone so muscles read as
-// sculpted bulges on the body instead of as gray blotches.
-const COLOR_UNKNOWN = '#d2a078';
+// "Unknown" (never logged): darker skin tone so muscles read as sculpted
+// bulges on the body instead of gray blotches. Slightly darker than the
+// base skin so segmentation lines are visible between muscles.
+const COLOR_UNKNOWN = '#b88560';
 const COLOR_SKIN = '#f2c89a';
+const COLOR_HAIR = '#2a1a12';
+const COLOR_EYE = '#1a1410';
+const COLOR_SHORTS = '#1a2a44';
 
 const PULSE_SPEED = 2.2;
 const HALO_SCALE = 1.14;
@@ -21,47 +25,49 @@ function makeGeometry(geom) {
   return null;
 }
 
+// Primary torso shape — a V-taper lathe profile sculpted as (radius, y) pairs.
+// Shoulders are broad, ribcage descends to a narrow waist, then hip flare.
 function Torso() {
   const geometry = useMemo(() => {
-    // V-taper profile (radius, y) — top (shoulder yoke) → waist (narrow) → hip flare
     const pts = [
-      new THREE.Vector2(0.12, 2.02),   // top of shoulder yoke (near neck base)
-      new THREE.Vector2(0.55, 1.94),   // shoulder girdle
-      new THREE.Vector2(0.62, 1.74),   // top of lats
-      new THREE.Vector2(0.64, 1.50),   // widest point (mid-lats)
-      new THREE.Vector2(0.57, 1.28),   // below lats
-      new THREE.Vector2(0.47, 1.04),   // ribcage
-      new THREE.Vector2(0.36, 0.80),   // waist (narrowest)
+      new THREE.Vector2(0.18, 2.04),   // base of neck / top of shoulder yoke
+      new THREE.Vector2(0.54, 1.98),   // shoulder shelf
+      new THREE.Vector2(0.66, 1.80),   // top of lats (widest)
+      new THREE.Vector2(0.68, 1.58),   // mid-lats
+      new THREE.Vector2(0.60, 1.34),   // below lats
+      new THREE.Vector2(0.48, 1.08),   // ribcage base
+      new THREE.Vector2(0.36, 0.82),   // waist (narrowest)
       new THREE.Vector2(0.42, 0.55),   // hip flare start
-      new THREE.Vector2(0.50, 0.32),   // hip crown
-      new THREE.Vector2(0.40, 0.12),   // under pelvis
+      new THREE.Vector2(0.52, 0.30),   // hip crown
+      new THREE.Vector2(0.46, 0.08),   // pelvis underside
     ];
-    return new THREE.LatheGeometry(pts, 48);
+    return new THREE.LatheGeometry(pts, 56);
   }, []);
 
-  // Flatten Z to get realistic front-back depth (torso is wider than it is deep)
+  // Z-scale: torso is wider than deep (~1.8:1). This flattens the lathe so
+  // viewed from the front the figure looks human, not cylindrical.
   return (
-    <mesh geometry={geometry} scale={[1, 1, 0.62]}>
+    <mesh geometry={geometry} scale={[1, 1, 0.6]}>
       <meshStandardMaterial
         color={COLOR_SKIN}
         emissive={COLOR_SKIN}
         emissiveIntensity={0.18}
-        roughness={0.6}
+        roughness={0.62}
         metalness={0.04}
       />
     </mesh>
   );
 }
 
-function SkinBase({ position, rotation, scale, geom }) {
+function SkinBase({ position, rotation, scale, geom, color = COLOR_SKIN, emissiveIntensity = 0.18 }) {
   return (
     <mesh position={position} rotation={rotation} scale={scale}>
       {makeGeometry(geom)}
       <meshStandardMaterial
-        color={COLOR_SKIN}
-        emissive={COLOR_SKIN}
-        emissiveIntensity={0.18}
-        roughness={0.6}
+        color={color}
+        emissive={color}
+        emissiveIntensity={emissiveIntensity}
+        roughness={0.62}
         metalness={0.04}
       />
     </mesh>
@@ -117,9 +123,9 @@ function Muscle({ muscleId, position, rotation = [0, 0, 0], scale = [1, 1, 1], g
         <meshStandardMaterial
           color={baseColor}
           emissive={baseColor}
-          emissiveIntensity={isTarget ? 0 : 0.15}
-          roughness={0.45}
-          metalness={0.08}
+          emissiveIntensity={isTarget ? 0 : 0.12}
+          roughness={0.5}
+          metalness={0.06}
         />
       </mesh>
       {isTarget ? (
@@ -129,122 +135,161 @@ function Muscle({ muscleId, position, rotation = [0, 0, 0], scale = [1, 1, 1], g
   );
 }
 
-// =============== STATIC SKIN SILHOUETTE ===============
-// Non-interactive skin-colored pieces that establish the human outline.
-// Torso is the lathe above; these cover head, neck, limbs, extremities.
+// =============== HEAD + FACE ===============
+// Head is a slightly-elongated sphere. On top of it sits a dark "hair" cap.
+// Two tiny dark orbs suggest eyes — enough to make the silhouette read as a
+// face rather than a sphere.
+const HEAD_PARTS = [
+  // Skull
+  { position: [0, 2.56, 0], scale: [0.88, 1.0, 0.92], geom: ['sphere', 0.34], color: COLOR_SKIN },
+  // Hair (top-back cap)
+  { position: [0, 2.70, -0.04], scale: [0.90, 0.56, 0.95], geom: ['sphere', 0.34], color: COLOR_HAIR, emissiveIntensity: 0.04 },
+  // Jaw mass (chin volume)
+  { position: [0, 2.34, 0.08], scale: [0.78, 0.48, 0.78], geom: ['sphere', 0.24], color: COLOR_SKIN },
+  // Ears
+  { position: [-0.29, 2.54, 0], scale: [0.45, 1.0, 0.7], geom: ['sphere', 0.07], color: COLOR_SKIN },
+  { position: [0.29, 2.54, 0], scale: [0.45, 1.0, 0.7], geom: ['sphere', 0.07], color: COLOR_SKIN },
+  // Brow ridge (subtle horizontal bulge above eyes)
+  { position: [0, 2.62, 0.28], scale: [1.5, 0.25, 0.5], geom: ['sphere', 0.14], color: COLOR_SKIN },
+  // Eyebrows
+  { position: [-0.11, 2.60, 0.30], scale: [1.4, 0.3, 0.5], geom: ['sphere', 0.05], color: COLOR_HAIR, emissiveIntensity: 0 },
+  { position: [0.11, 2.60, 0.30], scale: [1.4, 0.3, 0.5], geom: ['sphere', 0.05], color: COLOR_HAIR, emissiveIntensity: 0 },
+  // Eye whites (small off-white orbs) to make eyes visible from distance
+  { position: [-0.11, 2.55, 0.30], scale: [1, 0.75, 0.4], geom: ['sphere', 0.055], color: '#f5f0e6', emissiveIntensity: 0.05 },
+  { position: [0.11, 2.55, 0.30], scale: [1, 0.75, 0.4], geom: ['sphere', 0.055], color: '#f5f0e6', emissiveIntensity: 0.05 },
+  // Pupils (dark) on top of eye whites
+  { position: [-0.11, 2.55, 0.33], geom: ['sphere', 0.025], color: COLOR_EYE, emissiveIntensity: 0 },
+  { position: [0.11, 2.55, 0.33], geom: ['sphere', 0.025], color: COLOR_EYE, emissiveIntensity: 0 },
+  // Nose bridge
+  { position: [0, 2.48, 0.33], scale: [0.35, 1.4, 1.0], geom: ['sphere', 0.05], color: COLOR_SKIN },
+  // Mouth hint (small dark horizontal line)
+  { position: [0, 2.38, 0.30], scale: [1.8, 0.25, 0.4], geom: ['sphere', 0.04], color: '#7a3a2a', emissiveIntensity: 0 },
+];
+
+// =============== BODY SILHOUETTE ===============
+// Non-interactive skin-colored pieces that form the continuous human outline.
 const BASE_PARTS = [
-  // Head (slightly tall oval)
-  { position: [0, 2.52, 0], scale: [0.85, 1.0, 0.9], geom: ['sphere', 0.32] },
-  // Jaw bulge (under cheekbones)
-  { position: [0, 2.32, 0.08], scale: [0.78, 0.45, 0.72], geom: ['sphere', 0.23] },
-  // Neck — tapered cylinder wider at bottom
-  { position: [0, 2.08, 0], geom: ['cylinder', 0.14, 0.18, 0.24] },
+  // Neck — tapered cylinder, wider at base
+  { position: [0, 2.12, 0], geom: ['cylinder', 0.14, 0.18, 0.22] },
+  // Sternocleidomastoid hints — two subtle bulges on the sides of the neck
+  { position: [-0.10, 2.10, 0.08], scale: [0.4, 1.2, 0.5], geom: ['sphere', 0.1] },
+  { position: [0.10, 2.10, 0.08], scale: [0.4, 1.2, 0.5], geom: ['sphere', 0.1] },
 
-  // Pelvis base — seats under hip flare
-  { position: [0, 0.10, 0], scale: [1.0, 0.72, 0.88], geom: ['sphere', 0.38] },
+  // Shoulder caps — bridge the torso to the upper arm smoothly
+  { position: [-0.58, 1.94, 0], scale: [1.0, 0.9, 1.0], geom: ['sphere', 0.22] },
+  { position: [0.58, 1.94, 0], scale: [1.0, 0.9, 1.0], geom: ['sphere', 0.22] },
 
-  // Upper arms (shoulder → elbow), slight outward angle
-  { position: [-0.70, 1.48, 0], rotation: [0, 0, 0.07], geom: ['cylinder', 0.17, 0.13, 0.74] },
-  { position: [0.70, 1.48, 0], rotation: [0, 0, -0.07], geom: ['cylinder', 0.17, 0.13, 0.74] },
+  // Upper arms (shoulder → elbow), slight outward angle like relaxed stance
+  { position: [-0.70, 1.48, 0], rotation: [0, 0, 0.08], geom: ['cylinder', 0.18, 0.14, 0.80] },
+  { position: [0.70, 1.48, 0], rotation: [0, 0, -0.08], geom: ['cylinder', 0.18, 0.14, 0.80] },
   // Elbows
-  { position: [-0.76, 1.08, 0], geom: ['sphere', 0.13] },
-  { position: [0.76, 1.08, 0], geom: ['sphere', 0.13] },
+  { position: [-0.77, 1.05, 0], geom: ['sphere', 0.14] },
+  { position: [0.77, 1.05, 0], geom: ['sphere', 0.14] },
   // Forearms (elbow → wrist)
-  { position: [-0.80, 0.68, 0], rotation: [0, 0, 0.05], geom: ['cylinder', 0.13, 0.09, 0.72] },
-  { position: [0.80, 0.68, 0], rotation: [0, 0, -0.05], geom: ['cylinder', 0.13, 0.09, 0.72] },
+  { position: [-0.81, 0.65, 0], rotation: [0, 0, 0.06], geom: ['cylinder', 0.14, 0.09, 0.76] },
+  { position: [0.81, 0.65, 0], rotation: [0, 0, -0.06], geom: ['cylinder', 0.14, 0.09, 0.76] },
   // Wrists
-  { position: [-0.83, 0.32, 0], geom: ['sphere', 0.09] },
-  { position: [0.83, 0.32, 0], geom: ['sphere', 0.09] },
+  { position: [-0.84, 0.28, 0], geom: ['sphere', 0.09] },
+  { position: [0.84, 0.28, 0], geom: ['sphere', 0.09] },
   // Hands (flat fists)
-  { position: [-0.84, 0.16, 0], scale: [1, 1.4, 0.55], geom: ['sphere', 0.12] },
-  { position: [0.84, 0.16, 0], scale: [1, 1.4, 0.55], geom: ['sphere', 0.12] },
+  { position: [-0.85, 0.12, 0], scale: [1, 1.5, 0.55], geom: ['sphere', 0.12] },
+  { position: [0.85, 0.12, 0], scale: [1, 1.5, 0.55], geom: ['sphere', 0.12] },
 
-  // Thighs (hip → knee), slight inward angle (femur)
-  { position: [-0.21, -0.30, 0], rotation: [0, 0, -0.02], geom: ['cylinder', 0.23, 0.16, 0.85] },
-  { position: [0.21, -0.30, 0], rotation: [0, 0, 0.02], geom: ['cylinder', 0.23, 0.16, 0.85] },
+  // Hip crown — blends pelvis to thighs
+  { position: [-0.22, -0.06, 0], scale: [1.0, 0.75, 0.95], geom: ['sphere', 0.28] },
+  { position: [0.22, -0.06, 0], scale: [1.0, 0.75, 0.95], geom: ['sphere', 0.28] },
+
+  // Thighs (hip → knee)
+  { position: [-0.22, -0.36, 0], rotation: [0, 0, -0.02], geom: ['cylinder', 0.24, 0.16, 0.86] },
+  { position: [0.22, -0.36, 0], rotation: [0, 0, 0.02], geom: ['cylinder', 0.24, 0.16, 0.86] },
   // Knees
-  { position: [-0.21, -0.76, 0.02], geom: ['sphere', 0.15] },
-  { position: [0.21, -0.76, 0.02], geom: ['sphere', 0.15] },
+  { position: [-0.22, -0.82, 0.02], geom: ['sphere', 0.15] },
+  { position: [0.22, -0.82, 0.02], geom: ['sphere', 0.15] },
   // Shins (knee → ankle)
-  { position: [-0.22, -1.18, 0], geom: ['cylinder', 0.14, 0.08, 0.80] },
-  { position: [0.22, -1.18, 0], geom: ['cylinder', 0.14, 0.08, 0.80] },
+  { position: [-0.23, -1.24, 0], geom: ['cylinder', 0.14, 0.08, 0.82] },
+  { position: [0.23, -1.24, 0], geom: ['cylinder', 0.14, 0.08, 0.82] },
   // Ankles
-  { position: [-0.22, -1.60, 0], geom: ['sphere', 0.09] },
-  { position: [0.22, -1.60, 0], geom: ['sphere', 0.09] },
+  { position: [-0.23, -1.68, 0], geom: ['sphere', 0.09] },
+  { position: [0.23, -1.68, 0], geom: ['sphere', 0.09] },
   // Feet (flat, extended forward)
-  { position: [-0.22, -1.64, 0.18], scale: [1, 0.42, 2.3], geom: ['sphere', 0.13] },
-  { position: [0.22, -1.64, 0.18], scale: [1, 0.42, 2.3], geom: ['sphere', 0.13] },
+  { position: [-0.23, -1.72, 0.18], scale: [1, 0.42, 2.3], geom: ['sphere', 0.13] },
+  { position: [0.23, -1.72, 0.18], scale: [1, 0.42, 2.3], geom: ['sphere', 0.13] },
+];
+
+// Shorts / waistband — small dark band around pelvis so the figure doesn't
+// look "naked"; mirrors a fitness-model illustration style.
+const SHORTS = [
+  { position: [0, 0.10, 0], scale: [1.05, 0.45, 1.02], geom: ['sphere', 0.42], color: COLOR_SHORTS, emissiveIntensity: 0.02 },
 ];
 
 // =============== MUSCLE OVERLAYS ===============
 // Sit ON TOP of the base skin; color-coded by status, pulse when targeted.
 
 // 6-pack grid — two columns, three rows on front of abdomen.
-// z values sit on the torso surface so the back half is hidden inside
-// the body and only the rounded bulge pokes out.
 const ABS_GRID = [
-  [-0.09, 1.23, 0.34], [0.09, 1.23, 0.34],   // upper
-  [-0.09, 1.06, 0.30], [0.09, 1.06, 0.30],   // middle
-  [-0.09, 0.89, 0.25], [0.09, 0.89, 0.25],   // lower (torso narrows)
+  [-0.09, 1.28, 0.36], [0.09, 1.28, 0.36],   // upper
+  [-0.09, 1.11, 0.32], [0.09, 1.11, 0.32],   // middle
+  [-0.09, 0.94, 0.26], [0.09, 0.94, 0.26],   // lower (torso narrows)
 ];
 
 const MUSCLES = [
   // Traps — yoke across top of shoulders and back of neck
-  { muscleId: 'traps', position: [0, 2.00, -0.04], scale: [1.6, 0.40, 0.75], geom: ['sphere', 0.28] },
+  { muscleId: 'traps', position: [0, 2.04, -0.04], scale: [1.7, 0.42, 0.80], geom: ['sphere', 0.28] },
 
   // Deltoids — 3 lobes per shoulder (front + side + rear) for a capped look
-  { muscleId: 'shoulders', position: [-0.64, 1.88, 0.08], scale: [1, 1, 0.95], geom: ['sphere', 0.22] },
-  { muscleId: 'shoulders', position: [-0.70, 1.86, 0], scale: [1, 1, 1], geom: ['sphere', 0.22] },
-  { muscleId: 'shoulders', position: [-0.64, 1.85, -0.08], scale: [1, 1, 0.95], geom: ['sphere', 0.21] },
-  { muscleId: 'shoulders', position: [0.64, 1.88, 0.08], scale: [1, 1, 0.95], geom: ['sphere', 0.22] },
-  { muscleId: 'shoulders', position: [0.70, 1.86, 0], scale: [1, 1, 1], geom: ['sphere', 0.22] },
-  { muscleId: 'shoulders', position: [0.64, 1.85, -0.08], scale: [1, 1, 0.95], geom: ['sphere', 0.21] },
+  { muscleId: 'shoulders', position: [-0.62, 1.92, 0.10], scale: [1, 1, 0.95], geom: ['sphere', 0.22] },
+  { muscleId: 'shoulders', position: [-0.72, 1.90, 0], scale: [1, 1, 1], geom: ['sphere', 0.22] },
+  { muscleId: 'shoulders', position: [-0.62, 1.89, -0.10], scale: [1, 1, 0.95], geom: ['sphere', 0.21] },
+  { muscleId: 'shoulders', position: [0.62, 1.92, 0.10], scale: [1, 1, 0.95], geom: ['sphere', 0.22] },
+  { muscleId: 'shoulders', position: [0.72, 1.90, 0], scale: [1, 1, 1], geom: ['sphere', 0.22] },
+  { muscleId: 'shoulders', position: [0.62, 1.89, -0.10], scale: [1, 1, 0.95], geom: ['sphere', 0.21] },
 
   // Pecs — two rounded slabs separated by a visible sternum gap
-  { muscleId: 'chest', position: [-0.23, 1.60, 0.40], rotation: [0.12, 0, -0.28], scale: [1.15, 0.9, 0.65], geom: ['sphere', 0.26] },
-  { muscleId: 'chest', position: [0.23, 1.60, 0.40], rotation: [0.12, 0, 0.28], scale: [1.15, 0.9, 0.65], geom: ['sphere', 0.26] },
+  { muscleId: 'chest', position: [-0.21, 1.64, 0.42], rotation: [0.10, 0, -0.28], scale: [1.25, 0.95, 0.65], geom: ['sphere', 0.27] },
+  { muscleId: 'chest', position: [0.21, 1.64, 0.42], rotation: [0.10, 0, 0.28], scale: [1.25, 0.95, 0.65], geom: ['sphere', 0.27] },
 
-  // Upper back — rhomboid/mid-trap center mass + lat wings flaring out on the sides
-  { muscleId: 'upper_back', position: [0, 1.58, -0.39], scale: [1.4, 1.0, 0.5], geom: ['sphere', 0.26] },
-  { muscleId: 'upper_back', position: [-0.56, 1.40, -0.04], scale: [0.45, 1.35, 0.6], geom: ['sphere', 0.28] },
-  { muscleId: 'upper_back', position: [0.56, 1.40, -0.04], scale: [0.45, 1.35, 0.6], geom: ['sphere', 0.28] },
+  // Upper back — rhomboid/mid-trap center mass + lat wings (tucked behind
+  // the torso so they don't protrude through the chest from the front)
+  { muscleId: 'upper_back', position: [0, 1.62, -0.40], scale: [1.45, 1.05, 0.5], geom: ['sphere', 0.27] },
+  { muscleId: 'upper_back', position: [-0.44, 1.42, -0.22], scale: [0.5, 1.4, 0.55], geom: ['sphere', 0.28] },
+  { muscleId: 'upper_back', position: [0.44, 1.42, -0.22], scale: [0.5, 1.4, 0.55], geom: ['sphere', 0.28] },
 
   // Abs — 6-pack
-  ...ABS_GRID.map((p) => ({ muscleId: 'abs', position: p, scale: [0.85, 0.7, 0.55], geom: ['sphere', 0.11] })),
+  ...ABS_GRID.map((p) => ({ muscleId: 'abs', position: p, scale: [0.85, 0.75, 0.55], geom: ['sphere', 0.11] })),
 
   // Lower back — lumbar/erector mass
-  { muscleId: 'lower_back', position: [0, 0.82, -0.32], scale: [1.3, 0.95, 0.45], geom: ['sphere', 0.22] },
+  { muscleId: 'lower_back', position: [0, 0.85, -0.32], scale: [1.35, 0.95, 0.45], geom: ['sphere', 0.22] },
 
   // Biceps — prominent bulge on front of upper arm
-  { muscleId: 'biceps', position: [-0.64, 1.52, 0.18], rotation: [0, 0, 0.07], scale: [0.9, 1.0, 0.95], geom: ['capsule', 0.10, 0.24] },
-  { muscleId: 'biceps', position: [0.64, 1.52, 0.18], rotation: [0, 0, -0.07], scale: [0.9, 1.0, 0.95], geom: ['capsule', 0.10, 0.24] },
+  { muscleId: 'biceps', position: [-0.64, 1.52, 0.20], rotation: [0, 0, 0.08], scale: [0.95, 1.05, 0.95], geom: ['capsule', 0.11, 0.26] },
+  { muscleId: 'biceps', position: [0.64, 1.52, 0.20], rotation: [0, 0, -0.08], scale: [0.95, 1.05, 0.95], geom: ['capsule', 0.11, 0.26] },
 
   // Triceps — long head on back of upper arm
-  { muscleId: 'triceps', position: [-0.75, 1.43, -0.17], rotation: [0, 0, 0.07], scale: [0.85, 1.2, 0.9], geom: ['capsule', 0.10, 0.28] },
-  { muscleId: 'triceps', position: [0.75, 1.43, -0.17], rotation: [0, 0, -0.07], scale: [0.85, 1.2, 0.9], geom: ['capsule', 0.10, 0.28] },
+  { muscleId: 'triceps', position: [-0.76, 1.42, -0.18], rotation: [0, 0, 0.08], scale: [0.85, 1.2, 0.9], geom: ['capsule', 0.10, 0.28] },
+  { muscleId: 'triceps', position: [0.76, 1.42, -0.18], rotation: [0, 0, -0.08], scale: [0.85, 1.2, 0.9], geom: ['capsule', 0.10, 0.28] },
 
   // Forearms — brachioradialis/flexor bulge near the elbow
-  { muscleId: 'forearms', position: [-0.76, 0.85, 0.07], rotation: [0, 0, 0.05], scale: [0.9, 1.05, 0.9], geom: ['capsule', 0.11, 0.22] },
-  { muscleId: 'forearms', position: [0.76, 0.85, 0.07], rotation: [0, 0, -0.05], scale: [0.9, 1.05, 0.9], geom: ['capsule', 0.11, 0.22] },
+  { muscleId: 'forearms', position: [-0.78, 0.82, 0.08], rotation: [0, 0, 0.06], scale: [0.9, 1.1, 0.9], geom: ['capsule', 0.12, 0.22] },
+  { muscleId: 'forearms', position: [0.78, 0.82, 0.08], rotation: [0, 0, -0.06], scale: [0.9, 1.1, 0.9], geom: ['capsule', 0.12, 0.22] },
 
   // Glutes — two rounded mounds at the rear of the pelvis
-  { muscleId: 'glutes', position: [-0.17, 0.08, -0.25], scale: [1, 1, 0.85], geom: ['sphere', 0.22] },
-  { muscleId: 'glutes', position: [0.17, 0.08, -0.25], scale: [1, 1, 0.85], geom: ['sphere', 0.22] },
+  { muscleId: 'glutes', position: [-0.18, 0.06, -0.26], scale: [1, 1, 0.85], geom: ['sphere', 0.22] },
+  { muscleId: 'glutes', position: [0.18, 0.06, -0.26], scale: [1, 1, 0.85], geom: ['sphere', 0.22] },
 
   // Quads — big bulge on front of thigh (rectus femoris + vastus heads)
-  { muscleId: 'quads', position: [-0.21, -0.28, 0.15], scale: [1.1, 1.3, 0.9], geom: ['capsule', 0.11, 0.32] },
-  { muscleId: 'quads', position: [0.21, -0.28, 0.15], scale: [1.1, 1.3, 0.9], geom: ['capsule', 0.11, 0.32] },
+  { muscleId: 'quads', position: [-0.22, -0.34, 0.17], scale: [1.15, 1.35, 0.9], geom: ['capsule', 0.12, 0.34] },
+  { muscleId: 'quads', position: [0.22, -0.34, 0.17], scale: [1.15, 1.35, 0.9], geom: ['capsule', 0.12, 0.34] },
   // Inner quad teardrop (vastus medialis) — subtle extra bulge low-inside
-  { muscleId: 'quads', position: [-0.13, -0.55, 0.14], scale: [0.7, 0.85, 0.6], geom: ['sphere', 0.12] },
-  { muscleId: 'quads', position: [0.13, -0.55, 0.14], scale: [0.7, 0.85, 0.6], geom: ['sphere', 0.12] },
+  { muscleId: 'quads', position: [-0.14, -0.62, 0.15], scale: [0.7, 0.85, 0.6], geom: ['sphere', 0.12] },
+  { muscleId: 'quads', position: [0.14, -0.62, 0.15], scale: [0.7, 0.85, 0.6], geom: ['sphere', 0.12] },
 
   // Hamstrings — back of thigh
-  { muscleId: 'hamstrings', position: [-0.21, -0.32, -0.15], scale: [1.0, 1.3, 0.75], geom: ['capsule', 0.10, 0.30] },
-  { muscleId: 'hamstrings', position: [0.21, -0.32, -0.15], scale: [1.0, 1.3, 0.75], geom: ['capsule', 0.10, 0.30] },
+  { muscleId: 'hamstrings', position: [-0.22, -0.38, -0.16], scale: [1.05, 1.3, 0.75], geom: ['capsule', 0.11, 0.32] },
+  { muscleId: 'hamstrings', position: [0.22, -0.38, -0.16], scale: [1.05, 1.3, 0.75], geom: ['capsule', 0.11, 0.32] },
 
   // Calves — diamond bulge on back of shin (gastrocnemius)
-  { muscleId: 'calves', position: [-0.22, -1.08, -0.12], scale: [1.05, 1.3, 0.85], geom: ['capsule', 0.10, 0.24] },
-  { muscleId: 'calves', position: [0.22, -1.08, -0.12], scale: [1.05, 1.3, 0.85], geom: ['capsule', 0.10, 0.24] },
+  { muscleId: 'calves', position: [-0.23, -1.14, -0.13], scale: [1.1, 1.35, 0.85], geom: ['capsule', 0.11, 0.26] },
+  { muscleId: 'calves', position: [0.23, -1.14, -0.13], scale: [1.1, 1.35, 0.85], geom: ['capsule', 0.11, 0.26] },
 ];
 
 export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = true }) {
@@ -265,6 +310,17 @@ export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = t
   return (
     <group ref={groupRef} position={[0, -0.15, 0]} scale={[0.78, 0.78, 0.78]} rotation={[0, 0, 0]}>
       <Torso />
+      {HEAD_PARTS.map((p, i) => (
+        <SkinBase
+          key={`head-${i}`}
+          position={p.position}
+          rotation={p.rotation}
+          scale={p.scale}
+          geom={p.geom}
+          color={p.color}
+          emissiveIntensity={p.emissiveIntensity}
+        />
+      ))}
       {BASE_PARTS.map((p, i) => (
         <SkinBase
           key={`base-${i}`}
@@ -272,6 +328,17 @@ export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = t
           rotation={p.rotation}
           scale={p.scale}
           geom={p.geom}
+        />
+      ))}
+      {SHORTS.map((p, i) => (
+        <SkinBase
+          key={`shorts-${i}`}
+          position={p.position}
+          rotation={p.rotation}
+          scale={p.scale}
+          geom={p.geom}
+          color={p.color}
+          emissiveIntensity={p.emissiveIntensity}
         />
       ))}
       {MUSCLES.map((m, i) => (
