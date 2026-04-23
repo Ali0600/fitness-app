@@ -26,7 +26,7 @@ export default function BodyVisualization({ targetMuscleId }) {
   return (
     <View style={styles.container}>
       <Canvas
-        camera={{ position: [0, 0.3, 5.2], fov: 38 }}
+        camera={{ position: [0, 0.1, 6.0], fov: 38 }}
         gl={{ antialias: true }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.NoToneMapping;
