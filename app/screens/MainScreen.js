@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StatusBar,
   SafeAreaView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import MuscleRow from '../components/MuscleRow';
@@ -23,7 +24,9 @@ import { useNotifications } from '../hooks/useNotifications';
 export default function MainScreen() {
   const { logWorkout, workoutLog } = useAppState();
   const { isLoading } = useAppLoading();
-  const stats = useMuscleStats();
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const stats = useMuscleStats(refreshTick);
   useNotifications();
 
   const [logOpen, setLogOpen] = useState(false);
@@ -31,6 +34,12 @@ export default function MainScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [detailMuscle, setDetailMuscle] = useState(null);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshTick((t) => t + 1);
+    setTimeout(() => setRefreshing(false), 350);
+  }, []);
 
   if (isLoading) {
     return (
@@ -97,6 +106,15 @@ export default function MainScreen() {
         renderItem={renderItem}
         keyExtractor={(m) => m.id}
         contentContainerStyle={styles.listContent}
+        extraData={refreshTick}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#2ecc71"
+            colors={['#2ecc71']}
+          />
+        }
         ListHeaderComponent={
           workoutLog.length === 0 ? (
             <TouchableOpacity

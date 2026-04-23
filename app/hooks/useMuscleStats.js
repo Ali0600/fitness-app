@@ -16,7 +16,7 @@ import {
   timestampsFor,
 } from '../utils/statsUtils';
 
-export function useMuscleStats() {
+export function useMuscleStats(refreshTick = 0) {
   const { workoutLog, muscleGroups } = useAppState();
 
   return useMemo(() => {
@@ -45,7 +45,7 @@ export function useMuscleStats() {
       workoutsPerWeek: workoutsPerWeek(workoutLog, 4),
       totalWorkouts: workoutLog.length,
     };
-  }, [workoutLog, muscleGroups]);
+  }, [workoutLog, muscleGroups, refreshTick]);
 }
 
 export function useMuscleHistory(muscleId) {
