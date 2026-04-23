@@ -51,7 +51,10 @@ export default class NotificationService {
           body: `Your ${muscleName} has rested enough — it's ready to work again.`,
           sound: 'default',
         },
-        trigger: { date: new Date(triggerMs) },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: triggerMs,
+        },
       });
       return id;
     } catch (e) {
