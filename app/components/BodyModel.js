@@ -213,7 +213,7 @@ export default function BodyModel({ targetMuscleId, muscleStatus, autoRotate = t
   ];
 
   return (
-    <group ref={groupRef} position={[0, -0.4, 0]}>
+    <group ref={groupRef} position={[0, -0.3, 0]} scale={[0.82, 0.82, 0.82]}>
       {muscles.map((m, i) => (
         <Muscle
           key={`${m.muscleId}-${i}`}
