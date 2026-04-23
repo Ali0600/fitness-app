@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -14,12 +14,35 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useAppState } from '../hooks/useAppState';
 
-export default function LogWorkoutModal({ visible, onClose, initialMuscleIds = [] }) {
+export default function LogWorkoutModal({ visible, onClose, initialMuscleIds = [], initialWorkout = null }) {
   const { muscleGroups, logWorkout } = useAppState();
   const [selected, setSelected] = useState(new Set(initialMuscleIds));
   const [notes, setNotes] = useState('');
   const [addDetail, setAddDetail] = useState(false);
   const [exercises, setExercises] = useState([]);
+
+  useEffect(() => {
+    if (!visible) return;
+    if (initialWorkout) {
+      setSelected(new Set(initialWorkout.muscleGroupIds || []));
+      setExercises([
+        {
+          name: initialWorkout.name,
+          sets: (initialWorkout.defaultSets || []).map((s) => ({
+            reps: String(s.reps ?? ''),
+            weight: String(s.weight ?? ''),
+          })),
+        },
+      ]);
+      setAddDetail(true);
+      setNotes('');
+    } else {
+      setSelected(new Set(initialMuscleIds));
+      setExercises([]);
+      setAddDetail(false);
+      setNotes('');
+    }
+  }, [visible, initialWorkout]);
 
   const reset = () => {
     setSelected(new Set(initialMuscleIds));
@@ -88,7 +111,11 @@ export default function LogWorkoutModal({ visible, onClose, initialMuscleIds = [
               })),
           }))
       : [];
-    logWorkout(ids, { notes: notes.trim(), exercises: cleanedExercises });
+    logWorkout(ids, {
+      notes: notes.trim(),
+      exercises: cleanedExercises,
+      workoutId: initialWorkout?.id,
+    });
     close();
   };
 
@@ -102,7 +129,9 @@ export default function LogWorkoutModal({ visible, onClose, initialMuscleIds = [
           <TouchableOpacity onPress={close}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Log workout</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {initialWorkout ? initialWorkout.name : 'Log workout'}
+          </Text>
           <TouchableOpacity onPress={save} disabled={selected.size === 0}>
             <Text style={[styles.save, selected.size === 0 && styles.saveDisabled]}>Save</Text>
           </TouchableOpacity>

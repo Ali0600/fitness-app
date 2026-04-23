@@ -14,6 +14,8 @@ import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useAppState } from '../hooks/useAppState';
 import { useMuscleHistory } from '../hooks/useMuscleStats';
 import PromptModal from './PromptModal';
+import LogWorkoutModal from './LogWorkoutModal';
+import WorkoutEditorModal from './WorkoutEditorModal';
 import {
   avgRestIntervalHours,
   longestRestHours,
@@ -24,9 +26,13 @@ import {
 import { formatHours, relativeFromNow, restStatusColor } from '../utils/timeUtils';
 
 export default function MuscleDetailModal({ visible, muscle, onClose }) {
-  const { workoutLog, deleteLogEntry, updateLogEntry, logWorkout } = useAppState();
+  const { workoutLog, deleteLogEntry, updateLogEntry, logWorkout, workouts, muscleGroups } =
+    useAppState();
   const history = useMuscleHistory(muscle?.id);
   const [editing, setEditing] = useState(null);
+  const [loggingWorkout, setLoggingWorkout] = useState(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
 
   if (!muscle) return null;
 
@@ -44,6 +50,17 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
         : direct || parentLast;
     return { ...sg, lastWorkedAt: effective };
   });
+
+  const parentIdSet = new Set((muscleGroups || []).map((m) => m.id));
+  const parentNameById = new Map((muscleGroups || []).map((m) => [m.id, m.name]));
+  const muscleWorkouts = (workouts || []).filter((w) =>
+    w.muscleGroupIds?.includes(muscle.id)
+  );
+  const targetSummary = (w) =>
+    w.muscleGroupIds
+      .filter((id) => parentIdSet.has(id))
+      .map((id) => parentNameById.get(id))
+      .join(' · ');
 
   const handleDelete = (entry) => {
     Alert.alert('Delete entry?', moment(entry.timestamp).format('LLL'), [
@@ -119,6 +136,52 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
             </>
           )}
 
+          <View style={styles.workoutsHeader}>
+            <Text style={styles.section}>Workouts</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setEditingWorkout(null);
+                setEditorOpen(true);
+              }}
+              style={styles.addWorkoutBtn}
+            >
+              <Feather name="plus" size={16} color="#111" />
+              <Text style={styles.addWorkoutText}>Add</Text>
+            </TouchableOpacity>
+          </View>
+          {muscleWorkouts.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No workouts target this muscle yet. Tap Add to create one.
+            </Text>
+          ) : (
+            <View style={styles.workoutsCard}>
+              {muscleWorkouts.map((w, i) => (
+                <TouchableOpacity
+                  key={w.id}
+                  style={[
+                    styles.workoutRow,
+                    i < muscleWorkouts.length - 1 && styles.workoutDivider,
+                  ]}
+                  onPress={() => setLoggingWorkout(w)}
+                  onLongPress={() => {
+                    setEditingWorkout(w);
+                    setEditorOpen(true);
+                  }}
+                  delayLongPress={400}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.workoutName}>{w.name}</Text>
+                    <Text style={styles.workoutTargets}>{targetSummary(w)}</Text>
+                  </View>
+                  <View style={styles.workoutLogBtn}>
+                    <Text style={styles.workoutLogText}>Log</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           <Text style={styles.section}>History</Text>
           {history.length === 0 && (
             <Text style={styles.emptyText}>No workouts yet. Swipe a muscle row on the main screen to log one.</Text>
@@ -179,6 +242,22 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
               updateLogEntry(editing.id, { timestamp: parsed.toISOString() });
             }
             setEditing(null);
+          }}
+        />
+
+        <LogWorkoutModal
+          visible={!!loggingWorkout}
+          initialWorkout={loggingWorkout}
+          onClose={() => setLoggingWorkout(null)}
+        />
+
+        <WorkoutEditorModal
+          visible={editorOpen}
+          workout={editingWorkout}
+          presetMuscleId={editingWorkout ? null : muscle.id}
+          onClose={() => {
+            setEditorOpen(false);
+            setEditingWorkout(null);
           }}
         />
       </View>
@@ -250,6 +329,46 @@ const styles = StyleSheet.create({
   },
   subName: { fontSize: 15, fontWeight: '500', color: '#111' },
   subSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  workoutsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  addWorkoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: 'white',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  addWorkoutText: { marginLeft: 4, fontSize: 13, fontWeight: '600', color: '#111' },
+  workoutsCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  workoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  workoutDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  workoutName: { fontSize: 15, fontWeight: '600', color: '#111' },
+  workoutTargets: { fontSize: 12, color: '#888', marginTop: 2 },
+  workoutLogBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#2ecc71',
+    borderRadius: 14,
+  },
+  workoutLogText: { color: 'white', fontWeight: '700', fontSize: 13 },
   emptyText: { color: '#999', fontSize: 14, padding: 12 },
   entry: {
     backgroundColor: 'white',

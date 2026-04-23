@@ -1,6 +1,11 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import StorageService from '../services/storageService';
-import { DEFAULT_STATE, DEFAULT_SETTINGS, DEFAULT_MUSCLE_GROUPS } from '../data/muscleGroups';
+import {
+  DEFAULT_STATE,
+  DEFAULT_SETTINGS,
+  DEFAULT_MUSCLE_GROUPS,
+  DEFAULT_WORKOUTS,
+} from '../data/muscleGroups';
 
 export const AppStateContext = createContext();
 
@@ -20,6 +25,7 @@ function mergeWithDefaults(loaded) {
     version: loaded.version ?? 1,
     muscleGroups,
     workoutLog: Array.isArray(loaded.workoutLog) ? loaded.workoutLog : [],
+    workouts: Array.isArray(loaded.workouts) ? loaded.workouts : DEFAULT_WORKOUTS,
     settings: { ...DEFAULT_SETTINGS, ...(loaded.settings || {}) },
   };
 }
@@ -62,22 +68,26 @@ export const AppStateProvider = ({ children }) => {
     return () => clearTimeout(t);
   }, [state, isLoading]);
 
-  const logWorkout = useCallback((muscleGroupIds, { notes = '', exercises = [], timestamp } = {}) => {
-    if (!muscleGroupIds?.length) return;
-    setState((prev) => ({
-      ...prev,
-      workoutLog: [
-        ...prev.workoutLog,
-        {
-          id: `w-${Date.now()}`,
-          muscleGroupIds: [...muscleGroupIds],
-          timestamp: timestamp || new Date().toISOString(),
-          notes,
-          exercises,
-        },
-      ],
-    }));
-  }, []);
+  const logWorkout = useCallback(
+    (muscleGroupIds, { notes = '', exercises = [], timestamp, workoutId } = {}) => {
+      if (!muscleGroupIds?.length) return;
+      setState((prev) => ({
+        ...prev,
+        workoutLog: [
+          ...prev.workoutLog,
+          {
+            id: `w-${Date.now()}`,
+            muscleGroupIds: [...muscleGroupIds],
+            timestamp: timestamp || new Date().toISOString(),
+            notes,
+            exercises,
+            ...(workoutId ? { workoutId } : {}),
+          },
+        ],
+      }));
+    },
+    []
+  );
 
   const deleteLogEntry = useCallback((entryId) => {
     setState((prev) => ({
@@ -90,6 +100,36 @@ export const AppStateProvider = ({ children }) => {
     setState((prev) => ({
       ...prev,
       workoutLog: prev.workoutLog.map((e) => (e.id === entryId ? { ...e, ...updates } : e)),
+    }));
+  }, []);
+
+  const addWorkout = useCallback((workout) => {
+    setState((prev) => ({
+      ...prev,
+      workouts: [
+        {
+          id: workout.id || `custom-${Date.now()}`,
+          name: workout.name,
+          muscleGroupIds: [...(workout.muscleGroupIds || [])],
+          defaultSets: (workout.defaultSets || []).map((s) => ({ ...s })),
+          isSeed: false,
+        },
+        ...prev.workouts,
+      ],
+    }));
+  }, []);
+
+  const updateWorkout = useCallback((workoutId, patch) => {
+    setState((prev) => ({
+      ...prev,
+      workouts: prev.workouts.map((w) => (w.id === workoutId ? { ...w, ...patch } : w)),
+    }));
+  }, []);
+
+  const deleteWorkout = useCallback((workoutId) => {
+    setState((prev) => ({
+      ...prev,
+      workouts: prev.workouts.filter((w) => w.id !== workoutId),
     }));
   }, []);
 
@@ -138,12 +178,16 @@ export const AppStateProvider = ({ children }) => {
       state,
       muscleGroups: state.muscleGroups,
       workoutLog: state.workoutLog,
+      workouts: state.workouts || [],
       settings: state.settings,
       isLoading,
       error,
       logWorkout,
       deleteLogEntry,
       updateLogEntry,
+      addWorkout,
+      updateWorkout,
+      deleteWorkout,
       setRecommendedRestHours,
       updateSettings,
       setScheduledNotification,
@@ -157,6 +201,9 @@ export const AppStateProvider = ({ children }) => {
       logWorkout,
       deleteLogEntry,
       updateLogEntry,
+      addWorkout,
+      updateWorkout,
+      deleteWorkout,
       setRecommendedRestHours,
       updateSettings,
       setScheduledNotification,

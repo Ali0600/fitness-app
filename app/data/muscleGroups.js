@@ -133,6 +133,230 @@ export const DEFAULT_MUSCLE_GROUPS = [
   },
 ];
 
+const setsOf = (count, reps) =>
+  Array.from({ length: count }, () => ({ reps, weight: 0 }));
+
+export const DEFAULT_WORKOUTS = [
+  {
+    id: 'bench_press',
+    name: 'Bench Press',
+    muscleGroupIds: [
+      'chest', 'chest_middle', 'chest_lower',
+      'triceps', 'triceps_lateral', 'triceps_medial',
+      'shoulders', 'delt_anterior',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'incline_bench_press',
+    name: 'Incline Bench Press',
+    muscleGroupIds: [
+      'chest', 'chest_upper',
+      'shoulders', 'delt_anterior',
+      'triceps', 'triceps_long',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'dip',
+    name: 'Dip',
+    muscleGroupIds: [
+      'chest', 'chest_lower',
+      'triceps', 'triceps_medial', 'triceps_lateral',
+      'shoulders', 'delt_anterior',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'overhead_press',
+    name: 'Overhead Press',
+    muscleGroupIds: [
+      'shoulders', 'delt_anterior', 'delt_lateral',
+      'triceps', 'triceps_long', 'triceps_lateral',
+      'traps', 'traps_upper',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'lateral_raise',
+    name: 'Lateral Raise',
+    muscleGroupIds: ['shoulders', 'delt_lateral'],
+    defaultSets: setsOf(3, 12),
+    isSeed: true,
+  },
+  {
+    id: 'face_pull',
+    name: 'Face Pull',
+    muscleGroupIds: [
+      'shoulders', 'delt_posterior',
+      'upper_back', 'rhomboids', 'mid_traps',
+      'traps', 'traps_middle',
+    ],
+    defaultSets: setsOf(3, 12),
+    isSeed: true,
+  },
+  {
+    id: 'triceps_pushdown',
+    name: 'Triceps Pushdown',
+    muscleGroupIds: ['triceps', 'triceps_lateral', 'triceps_medial'],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'skullcrusher',
+    name: 'Skullcrusher',
+    muscleGroupIds: ['triceps', 'triceps_long', 'triceps_medial'],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'pull_up',
+    name: 'Pull-Up',
+    muscleGroupIds: [
+      'upper_back', 'lats', 'rhomboids', 'mid_traps', 'teres',
+      'biceps', 'biceps_long',
+      'forearms', 'forearm_flexors',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'barbell_row',
+    name: 'Barbell Row',
+    muscleGroupIds: [
+      'upper_back', 'lats', 'rhomboids', 'mid_traps',
+      'traps', 'traps_middle',
+      'biceps', 'biceps_long',
+      'lower_back', 'erector_spinae',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'barbell_curl',
+    name: 'Barbell Curl',
+    muscleGroupIds: ['biceps', 'biceps_long', 'biceps_short', 'brachialis'],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'hammer_curl',
+    name: 'Hammer Curl',
+    muscleGroupIds: [
+      'biceps', 'brachialis', 'biceps_long',
+      'forearms', 'brachioradialis',
+    ],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'shrug',
+    name: 'Shrug',
+    muscleGroupIds: ['traps', 'traps_upper'],
+    defaultSets: setsOf(3, 12),
+    isSeed: true,
+  },
+  {
+    id: 'deadlift',
+    name: 'Deadlift',
+    muscleGroupIds: [
+      'lower_back', 'erector_spinae', 'multifidus',
+      'glutes', 'glute_max',
+      'hamstrings', 'biceps_femoris', 'semitendinosus', 'semimembranosus',
+      'upper_back', 'lats',
+      'forearms', 'forearm_flexors',
+      'traps', 'traps_upper', 'traps_middle',
+    ],
+    defaultSets: setsOf(3, 5),
+    isSeed: true,
+  },
+  {
+    id: 'back_squat',
+    name: 'Back Squat',
+    muscleGroupIds: [
+      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
+      'glutes', 'glute_max',
+      'lower_back', 'erector_spinae',
+    ],
+    defaultSets: setsOf(3, 5),
+    isSeed: true,
+  },
+  {
+    id: 'front_squat',
+    name: 'Front Squat',
+    muscleGroupIds: [
+      'quads', 'rectus_femoris', 'vastus_medialis', 'vastus_lateralis', 'vastus_intermedius',
+      'glutes', 'glute_max',
+      'lower_back', 'erector_spinae',
+    ],
+    defaultSets: setsOf(3, 6),
+    isSeed: true,
+  },
+  {
+    id: 'romanian_deadlift',
+    name: 'Romanian Deadlift',
+    muscleGroupIds: [
+      'hamstrings', 'biceps_femoris', 'semitendinosus', 'semimembranosus',
+      'glutes', 'glute_max',
+      'lower_back', 'erector_spinae',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
+  {
+    id: 'hip_thrust',
+    name: 'Hip Thrust',
+    muscleGroupIds: [
+      'glutes', 'glute_max', 'glute_med',
+      'hamstrings', 'biceps_femoris',
+    ],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'leg_press',
+    name: 'Leg Press',
+    muscleGroupIds: [
+      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
+      'glutes', 'glute_max',
+    ],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'calf_raise',
+    name: 'Calf Raise',
+    muscleGroupIds: ['calves', 'gastrocnemius', 'soleus'],
+    defaultSets: setsOf(3, 15),
+    isSeed: true,
+  },
+  {
+    id: 'plank',
+    name: 'Plank',
+    muscleGroupIds: ['abs', 'rectus_abdominis', 'transverse_abdominis', 'obliques'],
+    defaultSets: setsOf(3, 30),
+    isSeed: true,
+  },
+  {
+    id: 'hanging_leg_raise',
+    name: 'Hanging Leg Raise',
+    muscleGroupIds: ['abs', 'rectus_abdominis', 'obliques'],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  {
+    id: 'russian_twist',
+    name: 'Russian Twist',
+    muscleGroupIds: ['abs', 'obliques', 'rectus_abdominis'],
+    defaultSets: setsOf(3, 20),
+    isSeed: true,
+  },
+];
+
 export const DEFAULT_SETTINGS = {
   bodyView: 'front',
   notificationsEnabled: true,
@@ -143,5 +367,6 @@ export const DEFAULT_STATE = {
   version: 1,
   muscleGroups: DEFAULT_MUSCLE_GROUPS,
   workoutLog: [],
+  workouts: DEFAULT_WORKOUTS,
   settings: DEFAULT_SETTINGS,
 };
