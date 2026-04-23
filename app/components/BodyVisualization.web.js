@@ -24,7 +24,7 @@ export default function BodyVisualization({ targetMuscleId }) {
 
   return (
     <View style={styles.container}>
-      <Canvas camera={{ position: [0, 0.6, 5], fov: 40 }} gl={{ antialias: true }}>
+      <Canvas camera={{ position: [0, 0.55, 6], fov: 40 }} gl={{ antialias: true }}>
         <ambientLight intensity={0.6} />
         <directionalLight position={[3, 5, 4]} intensity={0.9} />
         <directionalLight position={[-3, 2, -4]} intensity={0.4} />
