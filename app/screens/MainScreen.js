@@ -21,7 +21,7 @@ import { useMuscleStats } from '../hooks/useMuscleStats';
 import { useNotifications } from '../hooks/useNotifications';
 
 export default function MainScreen() {
-  const { logWorkout } = useAppState();
+  const { logWorkout, workoutLog } = useAppState();
   const { isLoading } = useAppLoading();
   const stats = useMuscleStats();
   useNotifications();
@@ -97,6 +97,28 @@ export default function MainScreen() {
         renderItem={renderItem}
         keyExtractor={(m) => m.id}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          workoutLog.length === 0 ? (
+            <TouchableOpacity
+              style={styles.emptyCard}
+              activeOpacity={0.85}
+              onPress={() => {
+                setLogInitialIds([]);
+                setLogOpen(true);
+              }}
+            >
+              <View style={styles.emptyIconCircle}>
+                <Feather name="plus" size={22} color="white" />
+              </View>
+              <View style={styles.emptyTextCol}>
+                <Text style={styles.emptyTitle}>Log your first workout</Text>
+                <Text style={styles.emptySubtitle}>
+                  Tap here, or any muscle below, to start tracking rest.
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : null
+        }
       />
 
       <LogWorkoutModal
@@ -143,4 +165,26 @@ const styles = StyleSheet.create({
   bodyLabelText: { color: 'rgba(255,255,255,0.85)', fontSize: 13 },
   bodyLabelBold: { color: '#2ecc71', fontWeight: '700' },
   listContent: { paddingVertical: 6, paddingBottom: 30 },
+  emptyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 6,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#0b0b0b',
+  },
+  emptyIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2ecc71',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  emptyTextCol: { flex: 1 },
+  emptyTitle: { color: 'white', fontSize: 15, fontWeight: '700' },
+  emptySubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
 });
