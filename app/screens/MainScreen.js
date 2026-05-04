@@ -67,7 +67,7 @@ export default function MainScreen() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.topBar}>
-        <Text style={styles.appTitle}>Rested v2</Text>
+        <Text style={styles.appTitle}>Rested</Text>
         <View style={styles.iconRow}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setStatsOpen(true)}>
             <Feather name="bar-chart-2" size={22} color="white" />
