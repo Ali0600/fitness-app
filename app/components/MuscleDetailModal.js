@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -26,8 +26,15 @@ import {
 import { formatHours, relativeFromNow, restStatusColor } from '../utils/timeUtils';
 
 export default function MuscleDetailModal({ visible, muscle, onClose }) {
-  const { workoutLog, deleteLogEntry, updateLogEntry, logWorkout, workouts, muscleGroups } =
-    useAppState();
+  const {
+    workoutLog,
+    deleteLogEntry,
+    updateLogEntry,
+    logWorkout,
+    workouts,
+    muscleGroups,
+    deleteWorkout,
+  } = useAppState();
   const history = useMuscleHistory(muscle?.id);
   const [editing, setEditing] = useState(null);
   const [loggingWorkout, setLoggingWorkout] = useState(null);
@@ -61,13 +68,6 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
       .filter((id) => parentIdSet.has(id))
       .map((id) => parentNameById.get(id))
       .join(' · ');
-
-  const handleDelete = (entry) => {
-    Alert.alert('Delete entry?', moment(entry.timestamp).format('LLL'), [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteLogEntry(entry.id) },
-    ]);
-  };
 
   const backdate = () => {
     if (history.length === 0) {
@@ -156,28 +156,18 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
           ) : (
             <View style={styles.workoutsCard}>
               {muscleWorkouts.map((w, i) => (
-                <TouchableOpacity
+                <WorkoutSwipeRow
                   key={w.id}
-                  style={[
-                    styles.workoutRow,
-                    i < muscleWorkouts.length - 1 && styles.workoutDivider,
-                  ]}
-                  onPress={() => setLoggingWorkout(w)}
-                  onLongPress={() => {
+                  workout={w}
+                  isLast={i === muscleWorkouts.length - 1}
+                  targetSummary={targetSummary(w)}
+                  onLog={() => setLoggingWorkout(w)}
+                  onEdit={() => {
                     setEditingWorkout(w);
                     setEditorOpen(true);
                   }}
-                  delayLongPress={400}
-                  activeOpacity={0.7}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.workoutName}>{w.name}</Text>
-                    <Text style={styles.workoutTargets}>{targetSummary(w)}</Text>
-                  </View>
-                  <View style={styles.workoutLogBtn}>
-                    <Text style={styles.workoutLogText}>Log</Text>
-                  </View>
-                </TouchableOpacity>
+                  onDelete={() => deleteWorkout(w.id)}
+                />
               ))}
             </View>
           )}
@@ -187,40 +177,12 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
             <Text style={styles.emptyText}>No workouts yet. Swipe a muscle row on the main screen to log one.</Text>
           )}
           {history.map((entry) => (
-            <Swipeable
+            <HistorySwipeRow
               key={entry.id}
-              renderRightActions={() => (
-                <TouchableOpacity style={styles.deleteBox} onPress={() => handleDelete(entry)}>
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
-              )}
-            >
-              <TouchableOpacity
-                style={styles.entry}
-                onLongPress={() => setEditing(entry)}
-                delayLongPress={400}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.entryTime}>{moment(entry.timestamp).format('LLL')}</Text>
-                  <Text style={styles.entrySub}>
-                    {moment(entry.timestamp).fromNow()}
-                    {entry.muscleGroupIds.length > 1 && ` · +${entry.muscleGroupIds.length - 1} more`}
-                  </Text>
-                  {entry.notes ? <Text style={styles.entryNotes}>{entry.notes}</Text> : null}
-                  {entry.exercises?.length > 0 && (
-                    <View style={styles.exerciseBlock}>
-                      {entry.exercises.map((ex, i) => (
-                        <Text key={i} style={styles.exerciseLine}>
-                          {ex.name}
-                          {ex.sets?.length > 0 &&
-                            ` · ${ex.sets.map((s) => `${s.reps}×${s.weight}`).join(', ')}`}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </Swipeable>
+              entry={entry}
+              onEdit={() => setEditing(entry)}
+              onDelete={() => deleteLogEntry(entry.id)}
+            />
           ))}
 
           {__DEV__ && (
@@ -271,6 +233,139 @@ function Stat({ label, value }) {
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
+  );
+}
+
+function WorkoutSwipeRow({ workout, isLast, targetSummary, onLog, onEdit, onDelete }) {
+  const swipeableRef = useRef(null);
+  const closeSwipe = () => swipeableRef.current?.close();
+
+  const confirmLog = () => {
+    Alert.alert(
+      'Log workout',
+      `Mark "${workout.name}" as done now?`,
+      [
+        { text: 'Cancel', style: 'cancel', onPress: closeSwipe },
+        {
+          text: 'Log',
+          style: 'default',
+          onPress: () => {
+            onLog();
+            closeSwipe();
+          },
+        },
+      ]
+    );
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      'Delete workout',
+      `Are you sure you want to delete "${workout.name}"?`,
+      [
+        { text: 'Cancel', style: 'cancel', onPress: closeSwipe },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            onDelete();
+            closeSwipe();
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderLeftActions={() => (
+        <TouchableOpacity style={styles.completeBox} onPress={confirmLog}>
+          <Text style={styles.actionText}>Complete</Text>
+        </TouchableOpacity>
+      )}
+      renderRightActions={() => (
+        <TouchableOpacity style={styles.deleteBoxRow} onPress={confirmDelete}>
+          <Text style={styles.actionText}>Delete</Text>
+        </TouchableOpacity>
+      )}
+    >
+      <TouchableOpacity
+        style={[styles.workoutRow, !isLast && styles.workoutDivider]}
+        onPress={onLog}
+        onLongPress={onEdit}
+        delayLongPress={400}
+        activeOpacity={0.7}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.workoutName}>{workout.name}</Text>
+          <Text style={styles.workoutTargets}>{targetSummary}</Text>
+        </View>
+        <View style={styles.workoutLogBtn}>
+          <Text style={styles.workoutLogText}>Log</Text>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+}
+
+function HistorySwipeRow({ entry, onEdit, onDelete }) {
+  const swipeableRef = useRef(null);
+  const closeSwipe = () => swipeableRef.current?.close();
+
+  const confirmDelete = () => {
+    Alert.alert(
+      'Delete entry',
+      `Delete the entry from ${moment(entry.timestamp).format('LLL')}?`,
+      [
+        { text: 'Cancel', style: 'cancel', onPress: closeSwipe },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            onDelete();
+            closeSwipe();
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={() => (
+        <TouchableOpacity style={styles.deleteBox} onPress={confirmDelete}>
+          <Text style={styles.deleteText}>Delete</Text>
+        </TouchableOpacity>
+      )}
+    >
+      <TouchableOpacity
+        style={styles.entry}
+        onLongPress={onEdit}
+        delayLongPress={400}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={styles.entryTime}>{moment(entry.timestamp).format('LLL')}</Text>
+          <Text style={styles.entrySub}>
+            {moment(entry.timestamp).fromNow()}
+            {entry.muscleGroupIds.length > 1 && ` · +${entry.muscleGroupIds.length - 1} more`}
+          </Text>
+          {entry.notes ? <Text style={styles.entryNotes}>{entry.notes}</Text> : null}
+          {entry.exercises?.length > 0 && (
+            <View style={styles.exerciseBlock}>
+              {entry.exercises.map((ex, i) => (
+                <Text key={i} style={styles.exerciseLine}>
+                  {ex.name}
+                  {ex.sets?.length > 0 &&
+                    ` · ${ex.sets.map((s) => `${s.reps}×${s.weight}`).join(', ')}`}
+                </Text>
+              ))}
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 }
 
@@ -390,6 +485,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   deleteText: { color: 'white', fontWeight: 'bold' },
+  completeBox: {
+    backgroundColor: '#2ecc71',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+  },
+  deleteBoxRow: {
+    backgroundColor: '#e74c3c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+  },
+  actionText: { color: 'white', fontWeight: 'bold' },
   devBtn: {
     padding: 12,
     backgroundColor: '#ffd54f',
