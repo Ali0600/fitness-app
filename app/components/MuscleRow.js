@@ -58,9 +58,7 @@ function MuscleRow({ muscle, lastWorkedAt, hoursSince, onLog, onTap }) {
     <Swipeable
       ref={swipeableRef}
       leftThreshold={80}
-      onSwipeableOpen={(direction) => {
-        if (direction === 'left') handleLog();
-      }}
+      onSwipeableOpen={() => handleLog()}
       renderLeftActions={() => (
         <TouchableOpacity style={styles.logBox} onPress={handleLog}>
           <Text style={styles.actionText}>Log now</Text>
