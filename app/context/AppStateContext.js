@@ -9,7 +9,7 @@ import {
 
 export const AppStateContext = createContext();
 
-const CURRENT_STATE_VERSION = 2;
+const CURRENT_STATE_VERSION = 3;
 
 function mergeWithDefaults(loaded) {
   if (!loaded || typeof loaded !== 'object') return DEFAULT_STATE;
@@ -26,9 +26,9 @@ function mergeWithDefaults(loaded) {
 
   const loadedVersion = loaded.version ?? 1;
   let workouts = Array.isArray(loaded.workouts) ? loaded.workouts : DEFAULT_WORKOUTS;
-  if (loadedVersion < 2) {
-    // v2 migration: re-seed isSeed:true workouts with refined sub-group assignments,
-    // preserve any user-created (isSeed:false) workouts.
+  if (loadedVersion < CURRENT_STATE_VERSION) {
+    // Re-seed isSeed:true workouts on every state-version bump,
+    // preserving user-created (isSeed:false) workouts.
     const userCreated = workouts.filter((w) => !w.isSeed);
     workouts = [...userCreated, ...DEFAULT_WORKOUTS];
   }
