@@ -14,7 +14,8 @@ export default function App() {
       try {
         const result = await Updates.checkForUpdateAsync();
         if (!result.isAvailable) return;
-        await Updates.fetchUpdateAsync();
+        const fetched = await Updates.fetchUpdateAsync();
+        if (!fetched.isNew) return;
         Alert.alert(
           'Update Ready',
           'A new version of Rested is ready to install.',
