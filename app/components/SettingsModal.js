@@ -72,6 +72,15 @@ export default function SettingsModal({ visible, onClose }) {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.section}>Display</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Show 3D body</Text>
+            <Switch
+              value={settings.bodyVisible !== false}
+              onValueChange={(v) => updateSettings({ bodyVisible: v })}
+            />
+          </View>
+
           <Text style={styles.section}>Notifications</Text>
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Ping me when a muscle is rested (iOS)</Text>

@@ -395,6 +395,7 @@ export const DEFAULT_WORKOUTS = [
 
 export const DEFAULT_SETTINGS = {
   bodyView: 'front',
+  bodyVisible: true,
   notificationsEnabled: true,
   scheduledNotificationIds: {},
 };

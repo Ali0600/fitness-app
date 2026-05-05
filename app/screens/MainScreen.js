@@ -22,7 +22,7 @@ import { useMuscleStats } from '../hooks/useMuscleStats';
 import { useNotifications } from '../hooks/useNotifications';
 
 export default function MainScreen() {
-  const { logWorkout, workoutLog } = useAppState();
+  const { logWorkout, workoutLog, settings } = useAppState();
   const { isLoading } = useAppLoading();
   const [refreshTick, setRefreshTick] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -87,19 +87,21 @@ export default function MainScreen() {
         </View>
       </View>
 
-      <View style={styles.bodyContainer}>
-        <BodyVisualization targetMuscleId={stats.longestRestedId} />
-        {stats.longestRestedId && (
-          <View style={styles.bodyLabel}>
-            <Text style={styles.bodyLabelText}>
-              Longest rested:{' '}
-              <Text style={styles.bodyLabelBold}>
-                {stats.sortedMuscles[0]?.name}
+      {settings?.bodyVisible !== false && (
+        <View style={styles.bodyContainer}>
+          <BodyVisualization targetMuscleId={stats.longestRestedId} />
+          {stats.longestRestedId && (
+            <View style={styles.bodyLabel}>
+              <Text style={styles.bodyLabelText}>
+                Longest rested:{' '}
+                <Text style={styles.bodyLabelBold}>
+                  {stats.sortedMuscles[0]?.name}
+                </Text>
               </Text>
-            </Text>
-          </View>
-        )}
-      </View>
+            </View>
+          )}
+        </View>
+      )}
 
       <FlatList
         data={stats.sortedMuscles}
