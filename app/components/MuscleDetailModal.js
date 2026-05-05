@@ -34,6 +34,7 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
     workouts,
     muscleGroups,
     deleteWorkout,
+    setMuscleHidden,
   } = useAppState();
   const history = useMuscleHistory(muscle?.id);
   const [editing, setEditing] = useState(null);
@@ -184,6 +185,36 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
               onDelete={() => deleteLogEntry(entry.id)}
             />
           ))}
+
+          <TouchableOpacity
+            style={styles.hideBtn}
+            onPress={() => {
+              if (muscle.hidden) {
+                setMuscleHidden(muscle.id, false);
+                onClose();
+                return;
+              }
+              Alert.alert(
+                'Hide muscle',
+                `Hide ${muscle.name}? You can unhide it from Settings.`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Hide',
+                    style: 'destructive',
+                    onPress: () => {
+                      setMuscleHidden(muscle.id, true);
+                      onClose();
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text style={styles.hideBtnText}>
+              {muscle.hidden ? 'Unhide muscle' : 'Hide muscle'}
+            </Text>
+          </TouchableOpacity>
 
           {__DEV__ && (
             <TouchableOpacity style={styles.devBtn} onPress={backdate}>
@@ -506,4 +537,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   devBtnText: { fontSize: 13, fontWeight: '700', color: '#222' },
+  hideBtn: {
+    padding: 14,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    marginTop: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+  },
+  hideBtnText: { fontSize: 15, fontWeight: '600', color: '#e74c3c' },
 });

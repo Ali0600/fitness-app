@@ -21,10 +21,14 @@ export default function SettingsModal({ visible, onClose }) {
     settings,
     state,
     setRecommendedRestHours,
+    setMuscleHidden,
     updateSettings,
     resetAll,
     replaceState,
   } = useAppState();
+
+  const hiddenMuscles = muscleGroups.filter((m) => m.hidden);
+  const visibleMuscles = muscleGroups.filter((m) => !m.hidden);
 
   const [importPromptOpen, setImportPromptOpen] = useState(false);
 
@@ -77,8 +81,25 @@ export default function SettingsModal({ visible, onClose }) {
             />
           </View>
 
+          {hiddenMuscles.length > 0 && (
+            <>
+              <Text style={styles.section}>Hidden muscles</Text>
+              {hiddenMuscles.map((mg) => (
+                <View key={mg.id} style={styles.row}>
+                  <Text style={styles.rowLabel}>{mg.name}</Text>
+                  <TouchableOpacity
+                    style={styles.unhideBtn}
+                    onPress={() => setMuscleHidden(mg.id, false)}
+                  >
+                    <Text style={styles.unhideBtnText}>Unhide</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
+
           <Text style={styles.section}>Recommended rest (hours)</Text>
-          {muscleGroups.map((mg) => (
+          {visibleMuscles.map((mg) => (
             <View key={mg.id} style={styles.row}>
               <Text style={styles.rowLabel}>{mg.name}</Text>
               <TextInput
@@ -161,4 +182,11 @@ const styles = StyleSheet.create({
   btnText: { fontSize: 15, fontWeight: '600', color: '#111' },
   btnDanger: { backgroundColor: '#fdecea' },
   btnDangerText: { color: '#c0392b' },
+  unhideBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    backgroundColor: '#2ecc71',
+    borderRadius: 14,
+  },
+  unhideBtnText: { color: 'white', fontWeight: '700', fontSize: 13 },
 });

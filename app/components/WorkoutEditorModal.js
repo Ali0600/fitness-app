@@ -139,7 +139,7 @@ export default function WorkoutEditorModal({
           />
 
           <Text style={styles.section}>Targets</Text>
-          {muscleGroups.map((mg) => {
+          {muscleGroups.filter((mg) => !mg.hidden).map((mg) => {
             const parentOn = selected.has(mg.id);
             return (
               <View key={mg.id} style={styles.targetBlock}>

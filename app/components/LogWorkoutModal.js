@@ -140,7 +140,7 @@ export default function LogWorkoutModal({ visible, onClose, initialMuscleIds = [
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.section}>Muscles worked</Text>
           <View style={styles.chipWrap}>
-            {muscleGroups.map((mg) => {
+            {muscleGroups.filter((mg) => !mg.hidden).map((mg) => {
               const on = selected.has(mg.id);
               return (
                 <TouchableOpacity

@@ -20,8 +20,9 @@ export function useMuscleStats(refreshTick = 0) {
   const { workoutLog, muscleGroups } = useAppState();
 
   return useMemo(() => {
-    const sorted = sortedMuscleGroups(workoutLog, muscleGroups);
-    const longestRestedId = longestRestedMuscleId(workoutLog, muscleGroups);
+    const visibleMuscleGroups = muscleGroups.filter((m) => !m.hidden);
+    const sorted = sortedMuscleGroups(workoutLog, visibleMuscleGroups);
+    const longestRestedId = longestRestedMuscleId(workoutLog, visibleMuscleGroups);
 
     const perMuscle = new Map();
     for (const mg of muscleGroups) {
@@ -39,8 +40,8 @@ export function useMuscleStats(refreshTick = 0) {
       sortedMuscles: sorted,
       longestRestedId,
       perMuscle,
-      mostTrained: mostTrainedMuscle(workoutLog, muscleGroups, 30),
-      mostNeglected: mostNeglectedMuscle(workoutLog, muscleGroups),
+      mostTrained: mostTrainedMuscle(workoutLog, visibleMuscleGroups, 30),
+      mostNeglected: mostNeglectedMuscle(workoutLog, visibleMuscleGroups),
       longestStreak: longestDailyStreak(workoutLog),
       workoutsPerWeek: workoutsPerWeek(workoutLog, 4),
       totalWorkouts: workoutLog.length,

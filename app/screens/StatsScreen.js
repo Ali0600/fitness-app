@@ -77,7 +77,7 @@ export default function StatsScreen({ visible, onClose }) {
             <Text style={styles.th}>Sessions</Text>
             <Text style={styles.th}>Adherence</Text>
           </View>
-          {muscleGroups.map((mg) => {
+          {muscleGroups.filter((mg) => !mg.hidden).map((mg) => {
             const pm = stats.perMuscle.get(mg.id);
             return (
               <View key={mg.id} style={styles.tr}>

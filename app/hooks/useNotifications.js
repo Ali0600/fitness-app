@@ -29,6 +29,7 @@ export function useNotifications() {
       await NotificationService.cancelAll();
 
       for (const mg of muscleGroups) {
+        if (mg.hidden) continue;
         const last = lastWorkedAt(workoutLog, mg.id);
         if (!last) continue;
         const trigger = new Date(new Date(last).getTime() + mg.recommendedRestHours * 3600 * 1000);

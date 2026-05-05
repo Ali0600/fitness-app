@@ -142,6 +142,15 @@ export const AppStateProvider = ({ children }) => {
     }));
   }, []);
 
+  const setMuscleHidden = useCallback((muscleId, hidden) => {
+    setState((prev) => ({
+      ...prev,
+      muscleGroups: prev.muscleGroups.map((m) =>
+        m.id === muscleId ? { ...m, hidden: !!hidden } : m
+      ),
+    }));
+  }, []);
+
   const updateSettings = useCallback((patch) => {
     setState((prev) => ({
       ...prev,
@@ -189,6 +198,7 @@ export const AppStateProvider = ({ children }) => {
       updateWorkout,
       deleteWorkout,
       setRecommendedRestHours,
+      setMuscleHidden,
       updateSettings,
       setScheduledNotification,
       resetAll,
@@ -205,6 +215,7 @@ export const AppStateProvider = ({ children }) => {
       updateWorkout,
       deleteWorkout,
       setRecommendedRestHours,
+      setMuscleHidden,
       updateSettings,
       setScheduledNotification,
       resetAll,
