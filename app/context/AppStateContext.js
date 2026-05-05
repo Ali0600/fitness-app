@@ -9,6 +9,8 @@ import {
 
 export const AppStateContext = createContext();
 
+const CURRENT_STATE_VERSION = 2;
+
 function mergeWithDefaults(loaded) {
   if (!loaded || typeof loaded !== 'object') return DEFAULT_STATE;
   const mgById = new Map(DEFAULT_MUSCLE_GROUPS.map((m) => [m.id, m]));
@@ -21,11 +23,21 @@ function mergeWithDefaults(loaded) {
   for (const [id, m] of loadedMgById) {
     if (!mgById.has(id)) muscleGroups.push(m);
   }
+
+  const loadedVersion = loaded.version ?? 1;
+  let workouts = Array.isArray(loaded.workouts) ? loaded.workouts : DEFAULT_WORKOUTS;
+  if (loadedVersion < 2) {
+    // v2 migration: re-seed isSeed:true workouts with refined sub-group assignments,
+    // preserve any user-created (isSeed:false) workouts.
+    const userCreated = workouts.filter((w) => !w.isSeed);
+    workouts = [...userCreated, ...DEFAULT_WORKOUTS];
+  }
+
   return {
-    version: loaded.version ?? 1,
+    version: CURRENT_STATE_VERSION,
     muscleGroups,
     workoutLog: Array.isArray(loaded.workoutLog) ? loaded.workoutLog : [],
-    workouts: Array.isArray(loaded.workouts) ? loaded.workouts : DEFAULT_WORKOUTS,
+    workouts,
     settings: { ...DEFAULT_SETTINGS, ...(loaded.settings || {}) },
   };
 }
