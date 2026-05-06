@@ -136,14 +136,14 @@ export const DEFAULT_MUSCLE_GROUPS = [
 const setsOf = (count, reps) =>
   Array.from({ length: count }, () => ({ reps, weight: 0 }));
 
-// Equipment: barbell + dumbbells only.
+// Equipment: barbell + dumbbells only. No bench required.
 export const DEFAULT_WORKOUTS = [
   // Chest
   {
-    id: 'bb_bench_press',
-    name: 'Barbell Bench Press',
+    id: 'bb_floor_press',
+    name: 'Barbell Floor Press',
     muscleGroupIds: [
-      'chest', 'chest_middle', 'chest_lower',
+      'chest', 'chest_middle',
       'shoulders', 'delt_anterior',
       'triceps', 'triceps_lateral', 'triceps_medial',
     ],
@@ -151,24 +151,14 @@ export const DEFAULT_WORKOUTS = [
     isSeed: true,
   },
   {
-    id: 'db_incline_bench_press',
-    name: 'Incline Dumbbell Bench Press',
+    id: 'db_floor_press',
+    name: 'Dumbbell Floor Press',
     muscleGroupIds: [
-      'chest', 'chest_upper',
+      'chest', 'chest_middle', 'chest_lower',
       'shoulders', 'delt_anterior',
-      'triceps', 'triceps_long',
+      'triceps', 'triceps_lateral', 'triceps_medial', 'triceps_long',
     ],
     defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-  {
-    id: 'db_fly',
-    name: 'Dumbbell Fly',
-    muscleGroupIds: [
-      'chest', 'chest_middle',
-      'shoulders', 'delt_anterior',
-    ],
-    defaultSets: setsOf(3, 12),
     isSeed: true,
   },
 
@@ -188,26 +178,17 @@ export const DEFAULT_WORKOUTS = [
     isSeed: true,
   },
   {
-    id: 'db_row',
-    name: 'Single-Arm Dumbbell Row',
+    id: 'db_bent_over_row',
+    name: 'Dumbbell Bent-Over Row',
     muscleGroupIds: [
       'upper_back', 'lats', 'rhomboids', 'mid_traps', 'teres',
       'shoulders', 'delt_posterior',
+      'traps', 'traps_middle',
       'biceps', 'biceps_long', 'brachialis',
       'forearms', 'forearm_flexors',
+      'lower_back', 'erector_spinae',
     ],
     defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-  {
-    id: 'db_pullover',
-    name: 'Dumbbell Pullover',
-    muscleGroupIds: [
-      'upper_back', 'lats', 'teres',
-      'chest', 'chest_middle', 'chest_lower',
-      'triceps', 'triceps_long',
-    ],
-    defaultSets: setsOf(3, 12),
     isSeed: true,
   },
 
@@ -253,8 +234,8 @@ export const DEFAULT_WORKOUTS = [
     isSeed: true,
   },
   {
-    id: 'db_reverse_fly',
-    name: 'Dumbbell Reverse Fly',
+    id: 'db_bent_over_reverse_fly',
+    name: 'Bent-Over Dumbbell Reverse Fly',
     muscleGroupIds: [
       'shoulders', 'delt_posterior',
       'upper_back', 'rhomboids', 'mid_traps', 'teres',
@@ -297,32 +278,11 @@ export const DEFAULT_WORKOUTS = [
     defaultSets: setsOf(3, 10),
     isSeed: true,
   },
-  {
-    id: 'db_incline_curl',
-    name: 'Incline Dumbbell Curl',
-    muscleGroupIds: [
-      'biceps', 'biceps_long', 'brachialis',
-      'forearms', 'forearm_flexors',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
 
   // Triceps
   {
-    id: 'bb_close_grip_bench',
-    name: 'Close-Grip Bench Press',
-    muscleGroupIds: [
-      'triceps', 'triceps_lateral', 'triceps_medial', 'triceps_long',
-      'chest', 'chest_middle',
-      'shoulders', 'delt_anterior',
-    ],
-    defaultSets: setsOf(3, 8),
-    isSeed: true,
-  },
-  {
-    id: 'bb_skullcrusher',
-    name: 'Barbell Skullcrusher',
+    id: 'db_lying_triceps_extension',
+    name: 'Lying Dumbbell Triceps Extension',
     muscleGroupIds: [
       'triceps', 'triceps_long', 'triceps_medial', 'triceps_lateral',
     ],
@@ -397,8 +357,8 @@ export const DEFAULT_WORKOUTS = [
     isSeed: true,
   },
   {
-    id: 'db_bulgarian_split_squat',
-    name: 'Dumbbell Bulgarian Split Squat',
+    id: 'db_lunge',
+    name: 'Dumbbell Lunge',
     muscleGroupIds: [
       'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
       'glutes', 'glute_max', 'glute_med',
@@ -428,8 +388,8 @@ export const DEFAULT_WORKOUTS = [
 
   // Glutes
   {
-    id: 'bb_hip_thrust',
-    name: 'Barbell Hip Thrust',
+    id: 'bb_glute_bridge',
+    name: 'Barbell Glute Bridge',
     muscleGroupIds: [
       'glutes', 'glute_max', 'glute_med',
       'hamstrings', 'biceps_femoris', 'semitendinosus',
@@ -478,7 +438,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_STATE = {
-  version: 3,
+  version: 4,
   muscleGroups: DEFAULT_MUSCLE_GROUPS,
   workoutLog: [],
   workouts: DEFAULT_WORKOUTS,
