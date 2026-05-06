@@ -137,295 +137,25 @@ const setsOf = (count, reps) =>
   Array.from({ length: count }, () => ({ reps, weight: 0 }));
 
 // Equipment: barbell + dumbbells only. No bench required.
+// User-curated catalog: workouts are added 1-by-1 as the user actually performs them.
 export const DEFAULT_WORKOUTS = [
-  // Chest
-  {
-    id: 'bb_floor_press',
-    name: 'Barbell Floor Press',
-    muscleGroupIds: [
-      'chest', 'chest_middle',
-      'shoulders', 'delt_anterior',
-      'triceps', 'triceps_lateral', 'triceps_medial',
-    ],
-    defaultSets: setsOf(3, 8),
-    isSeed: true,
-  },
-  {
-    id: 'db_floor_press',
-    name: 'Dumbbell Floor Press',
-    muscleGroupIds: [
-      'chest', 'chest_middle', 'chest_lower',
-      'shoulders', 'delt_anterior',
-      'triceps', 'triceps_lateral', 'triceps_medial', 'triceps_long',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
-  // Back
-  {
-    id: 'bb_bent_over_row',
-    name: 'Barbell Bent-Over Row',
-    muscleGroupIds: [
-      'upper_back', 'lats', 'rhomboids', 'mid_traps', 'teres',
-      'shoulders', 'delt_posterior',
-      'traps', 'traps_middle',
-      'biceps', 'biceps_long', 'biceps_short', 'brachialis',
-      'forearms', 'forearm_flexors',
-      'lower_back', 'erector_spinae',
-    ],
-    defaultSets: setsOf(3, 8),
-    isSeed: true,
-  },
-  {
-    id: 'db_bent_over_row',
-    name: 'Dumbbell Bent-Over Row',
-    muscleGroupIds: [
-      'upper_back', 'lats', 'rhomboids', 'mid_traps', 'teres',
-      'shoulders', 'delt_posterior',
-      'traps', 'traps_middle',
-      'biceps', 'biceps_long', 'brachialis',
-      'forearms', 'forearm_flexors',
-      'lower_back', 'erector_spinae',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
-  // Posterior chain (also covers hamstrings/glutes/lower back/quads/forearms)
-  {
-    id: 'bb_deadlift',
-    name: 'Barbell Deadlift',
-    muscleGroupIds: [
-      'lower_back', 'erector_spinae', 'multifidus', 'qlumborum',
-      'glutes', 'glute_max',
-      'hamstrings', 'biceps_femoris', 'semitendinosus', 'semimembranosus',
-      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
-      'upper_back', 'lats', 'rhomboids',
-      'traps', 'traps_upper', 'traps_middle',
-      'forearms', 'forearm_flexors',
-      'abs', 'rectus_abdominis', 'transverse_abdominis',
-    ],
-    defaultSets: setsOf(3, 5),
-    isSeed: true,
-  },
-
-  // Shoulders
-  {
-    id: 'bb_overhead_press',
-    name: 'Barbell Overhead Press',
-    muscleGroupIds: [
-      'shoulders', 'delt_anterior', 'delt_lateral',
-      'triceps', 'triceps_long', 'triceps_lateral',
-      'traps', 'traps_upper',
-      'chest', 'chest_upper',
-    ],
-    defaultSets: setsOf(3, 6),
-    isSeed: true,
-  },
-  {
-    id: 'db_lateral_raise',
-    name: 'Dumbbell Lateral Raise',
-    muscleGroupIds: [
-      'shoulders', 'delt_lateral',
-      'traps', 'traps_upper',
-    ],
-    defaultSets: setsOf(3, 12),
-    isSeed: true,
-  },
-  {
-    id: 'db_bent_over_reverse_fly',
-    name: 'Bent-Over Dumbbell Reverse Fly',
-    muscleGroupIds: [
-      'shoulders', 'delt_posterior',
-      'upper_back', 'rhomboids', 'mid_traps', 'teres',
-      'traps', 'traps_middle', 'traps_lower',
-    ],
-    defaultSets: setsOf(3, 12),
-    isSeed: true,
-  },
-
-  // Traps
-  {
-    id: 'bb_shrug',
-    name: 'Barbell Shrug',
-    muscleGroupIds: [
-      'traps', 'traps_upper', 'traps_middle',
-      'forearms', 'forearm_flexors',
-    ],
-    defaultSets: setsOf(3, 12),
-    isSeed: true,
-  },
-
-  // Biceps
-  {
-    id: 'bb_curl',
-    name: 'Barbell Curl',
-    muscleGroupIds: [
-      'biceps', 'biceps_long', 'biceps_short', 'brachialis',
-      'forearms', 'forearm_flexors', 'brachioradialis',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-  {
-    id: 'db_hammer_curl',
-    name: 'Dumbbell Hammer Curl',
-    muscleGroupIds: [
-      'biceps', 'brachialis', 'biceps_long',
-      'forearms', 'brachioradialis', 'forearm_flexors',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
   // Triceps
   {
-    id: 'db_lying_triceps_extension',
-    name: 'Lying Dumbbell Triceps Extension',
+    id: 'db_triceps_kickback',
+    name: 'Dumbbell Triceps Kickback',
     muscleGroupIds: [
-      'triceps', 'triceps_long', 'triceps_medial', 'triceps_lateral',
+      'triceps', 'triceps_lateral', 'triceps_medial', 'triceps_long',
     ],
-    defaultSets: setsOf(3, 10),
+    defaultSets: setsOf(3, 12),
     isSeed: true,
   },
   {
     id: 'db_overhead_extension',
-    name: 'Dumbbell Overhead Triceps Extension',
+    name: 'Overhead Dumbbell Extension',
     muscleGroupIds: [
       'triceps', 'triceps_long', 'triceps_medial',
     ],
     defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
-  // Forearms
-  {
-    id: 'bb_wrist_curl',
-    name: 'Barbell Wrist Curl',
-    muscleGroupIds: ['forearms', 'forearm_flexors'],
-    defaultSets: setsOf(3, 15),
-    isSeed: true,
-  },
-  {
-    id: 'bb_reverse_wrist_curl',
-    name: 'Barbell Reverse Wrist Curl',
-    muscleGroupIds: ['forearms', 'forearm_extensors', 'brachioradialis'],
-    defaultSets: setsOf(3, 15),
-    isSeed: true,
-  },
-
-  // Quads
-  {
-    id: 'bb_back_squat',
-    name: 'Barbell Back Squat',
-    muscleGroupIds: [
-      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
-      'glutes', 'glute_max', 'glute_med',
-      'hamstrings', 'biceps_femoris',
-      'lower_back', 'erector_spinae', 'multifidus',
-      'upper_back', 'rhomboids',
-      'abs', 'rectus_abdominis', 'transverse_abdominis', 'obliques',
-    ],
-    defaultSets: setsOf(3, 5),
-    isSeed: true,
-  },
-  {
-    id: 'bb_front_squat',
-    name: 'Barbell Front Squat',
-    muscleGroupIds: [
-      'quads', 'rectus_femoris', 'vastus_medialis', 'vastus_lateralis', 'vastus_intermedius',
-      'glutes', 'glute_max',
-      'lower_back', 'erector_spinae',
-      'upper_back', 'rhomboids', 'mid_traps',
-      'traps', 'traps_upper',
-      'abs', 'rectus_abdominis', 'transverse_abdominis', 'obliques',
-    ],
-    defaultSets: setsOf(3, 6),
-    isSeed: true,
-  },
-  {
-    id: 'db_goblet_squat',
-    name: 'Dumbbell Goblet Squat',
-    muscleGroupIds: [
-      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
-      'glutes', 'glute_max',
-      'abs', 'rectus_abdominis', 'transverse_abdominis', 'obliques',
-      'upper_back', 'rhomboids',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-  {
-    id: 'db_lunge',
-    name: 'Dumbbell Lunge',
-    muscleGroupIds: [
-      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
-      'glutes', 'glute_max', 'glute_med',
-      'hamstrings', 'biceps_femoris',
-      'calves', 'gastrocnemius',
-      'abs', 'transverse_abdominis', 'obliques',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
-  // Hamstrings
-  {
-    id: 'bb_romanian_deadlift',
-    name: 'Barbell Romanian Deadlift',
-    muscleGroupIds: [
-      'hamstrings', 'biceps_femoris', 'semitendinosus', 'semimembranosus',
-      'glutes', 'glute_max',
-      'lower_back', 'erector_spinae', 'multifidus',
-      'upper_back', 'lats',
-      'traps', 'traps_upper',
-      'forearms', 'forearm_flexors',
-    ],
-    defaultSets: setsOf(3, 8),
-    isSeed: true,
-  },
-
-  // Glutes
-  {
-    id: 'bb_glute_bridge',
-    name: 'Barbell Glute Bridge',
-    muscleGroupIds: [
-      'glutes', 'glute_max', 'glute_med',
-      'hamstrings', 'biceps_femoris', 'semitendinosus',
-    ],
-    defaultSets: setsOf(3, 10),
-    isSeed: true,
-  },
-
-  // Calves
-  {
-    id: 'db_calf_raise',
-    name: 'Standing Dumbbell Calf Raise',
-    muscleGroupIds: ['calves', 'gastrocnemius', 'soleus'],
-    defaultSets: setsOf(3, 15),
-    isSeed: true,
-  },
-
-  // Abs
-  {
-    id: 'db_russian_twist',
-    name: 'Dumbbell Russian Twist',
-    muscleGroupIds: [
-      'abs', 'obliques', 'rectus_abdominis', 'transverse_abdominis',
-      'lower_back', 'erector_spinae',
-    ],
-    defaultSets: setsOf(3, 20),
-    isSeed: true,
-  },
-  {
-    id: 'db_sit_up',
-    name: 'Weighted Sit-Up',
-    muscleGroupIds: [
-      'abs', 'rectus_abdominis', 'transverse_abdominis', 'obliques',
-      'quads', 'rectus_femoris',
-    ],
-    defaultSets: setsOf(3, 12),
     isSeed: true,
   },
 ];
@@ -438,7 +168,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_STATE = {
-  version: 4,
+  version: 6,
   muscleGroups: DEFAULT_MUSCLE_GROUPS,
   workoutLog: [],
   workouts: DEFAULT_WORKOUTS,

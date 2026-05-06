@@ -9,7 +9,7 @@ import {
 
 export const AppStateContext = createContext();
 
-const CURRENT_STATE_VERSION = 4;
+const CURRENT_STATE_VERSION = 6;
 
 function mergeWithDefaults(loaded) {
   if (!loaded || typeof loaded !== 'object') return DEFAULT_STATE;
