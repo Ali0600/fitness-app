@@ -16,6 +16,8 @@ import { useMuscleHistory } from '../hooks/useMuscleStats';
 import PromptModal from './PromptModal';
 import LogWorkoutModal from './LogWorkoutModal';
 import WorkoutEditorModal from './WorkoutEditorModal';
+import WorkoutSwipeRow from './WorkoutSwipeRow';
+import { buildTargetSummary } from '../utils/workoutDisplay';
 import {
   avgRestIntervalHours,
   longestRestHours,
@@ -59,44 +61,9 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
     return { ...sg, lastWorkedAt: effective };
   });
 
-  const parentIdSet = new Set((muscleGroups || []).map((m) => m.id));
-  const parentNameById = new Map((muscleGroups || []).map((m) => [m.id, m.name]));
-  const subInfoById = new Map();
-  for (const mg of muscleGroups || []) {
-    for (const sg of mg.subGroups || []) {
-      subInfoById.set(sg.id, { parentId: mg.id, name: sg.name.replace(/\s*\([^)]*\)\s*$/, '') });
-    }
-  }
   const muscleWorkouts = (workouts || []).filter((w) =>
     w.muscleGroupIds?.includes(muscle.id)
   );
-  const targetSummary = (w) => {
-    const subsByParent = new Map();
-    const parentOrder = [];
-    for (const id of w.muscleGroupIds) {
-      if (parentIdSet.has(id)) {
-        if (!subsByParent.has(id)) {
-          subsByParent.set(id, []);
-          parentOrder.push(id);
-        }
-      } else {
-        const info = subInfoById.get(id);
-        if (!info) continue;
-        if (!subsByParent.has(info.parentId)) {
-          subsByParent.set(info.parentId, []);
-          parentOrder.push(info.parentId);
-        }
-        subsByParent.get(info.parentId).push(info.name);
-      }
-    }
-    return parentOrder
-      .map((pid) => {
-        const subs = subsByParent.get(pid) || [];
-        const parentName = parentNameById.get(pid);
-        return subs.length > 0 ? `${parentName} (${subs.join(', ')})` : parentName;
-      })
-      .join(' · ');
-  };
 
   const backdate = () => {
     if (history.length === 0) {
@@ -189,7 +156,7 @@ export default function MuscleDetailModal({ visible, muscle, onClose }) {
                   key={w.id}
                   workout={w}
                   isLast={i === muscleWorkouts.length - 1}
-                  targetSummary={targetSummary(w)}
+                  targetSummary={buildTargetSummary(w, muscleGroups)}
                   onLog={() => setLoggingWorkout(w)}
                   onEdit={() => {
                     setEditingWorkout(w);
@@ -292,79 +259,6 @@ function Stat({ label, value }) {
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
-  );
-}
-
-function WorkoutSwipeRow({ workout, isLast, targetSummary, onLog, onEdit, onDelete }) {
-  const swipeableRef = useRef(null);
-  const closeSwipe = () => swipeableRef.current?.close();
-
-  const confirmLog = () => {
-    Alert.alert(
-      'Log workout',
-      `Mark "${workout.name}" as done now?`,
-      [
-        { text: 'Cancel', style: 'cancel', onPress: closeSwipe },
-        {
-          text: 'Log',
-          style: 'default',
-          onPress: () => {
-            onLog();
-            closeSwipe();
-          },
-        },
-      ]
-    );
-  };
-
-  const confirmDelete = () => {
-    Alert.alert(
-      'Delete workout',
-      `Are you sure you want to delete "${workout.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel', onPress: closeSwipe },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            onDelete();
-            closeSwipe();
-          },
-        },
-      ]
-    );
-  };
-
-  return (
-    <Swipeable
-      ref={swipeableRef}
-      renderLeftActions={() => (
-        <TouchableOpacity style={styles.completeBox} onPress={confirmLog}>
-          <Text style={styles.actionText}>Complete</Text>
-        </TouchableOpacity>
-      )}
-      renderRightActions={() => (
-        <TouchableOpacity style={styles.deleteBoxRow} onPress={confirmDelete}>
-          <Text style={styles.actionText}>Delete</Text>
-        </TouchableOpacity>
-      )}
-    >
-      <TouchableOpacity
-        style={[styles.workoutRow, !isLast && styles.workoutDivider]}
-        onPress={onLog}
-        onLongPress={onEdit}
-        delayLongPress={400}
-        activeOpacity={0.7}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.workoutName}>{workout.name}</Text>
-          <Text style={styles.workoutTargets}>{targetSummary}</Text>
-        </View>
-        <View style={styles.workoutLogBtn}>
-          <Text style={styles.workoutLogText}>Log</Text>
-        </View>
-      </TouchableOpacity>
-    </Swipeable>
   );
 }
 
@@ -505,24 +399,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 16,
   },
-  workoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  workoutDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  workoutName: { fontSize: 15, fontWeight: '600', color: '#111' },
-  workoutTargets: { fontSize: 12, color: '#888', marginTop: 2 },
-  workoutLogBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#2ecc71',
-    borderRadius: 14,
-  },
-  workoutLogText: { color: 'white', fontWeight: '700', fontSize: 13 },
   emptyText: { color: '#999', fontSize: 14, padding: 12 },
   entry: {
     backgroundColor: 'white',
@@ -544,19 +420,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   deleteText: { color: 'white', fontWeight: 'bold' },
-  completeBox: {
-    backgroundColor: '#2ecc71',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 22,
-  },
-  deleteBoxRow: {
-    backgroundColor: '#e74c3c',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 22,
-  },
-  actionText: { color: 'white', fontWeight: 'bold' },
   devBtn: {
     padding: 12,
     backgroundColor: '#ffd54f',

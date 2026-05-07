@@ -16,13 +16,14 @@ import BodyVisualization from '../components/BodyVisualization';
 import LogWorkoutModal from '../components/LogWorkoutModal';
 import MuscleDetailModal from '../components/MuscleDetailModal';
 import SettingsModal from '../components/SettingsModal';
+import WorkoutEditorModal from '../components/WorkoutEditorModal';
 import StatsScreen from './StatsScreen';
 import { useAppState, useAppLoading } from '../hooks/useAppState';
 import { useMuscleStats } from '../hooks/useMuscleStats';
 import { useNotifications } from '../hooks/useNotifications';
 
 export default function MainScreen() {
-  const { logWorkout, workoutLog, settings } = useAppState();
+  const { logWorkout, workoutLog, settings, deleteWorkout } = useAppState();
   const { isLoading } = useAppLoading();
   const [refreshTick, setRefreshTick] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -34,6 +35,9 @@ export default function MainScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [detailMuscle, setDetailMuscle] = useState(null);
+  const [loggingWorkout, setLoggingWorkout] = useState(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -58,6 +62,12 @@ export default function MainScreen() {
         hoursSince={pm?.hoursSince ?? Infinity}
         onLog={() => logWorkout([item.id])}
         onTap={() => setDetailMuscle(item)}
+        onLogWorkout={(w) => setLoggingWorkout(w)}
+        onEditWorkout={(w) => {
+          setEditingWorkout(w);
+          setEditorOpen(true);
+        }}
+        onDeleteWorkout={(id) => deleteWorkout(id)}
       />
     );
   };
@@ -153,6 +163,20 @@ export default function MainScreen() {
       />
       <SettingsModal visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <StatsScreen visible={statsOpen} onClose={() => setStatsOpen(false)} />
+
+      <LogWorkoutModal
+        visible={!!loggingWorkout}
+        initialWorkout={loggingWorkout}
+        onClose={() => setLoggingWorkout(null)}
+      />
+      <WorkoutEditorModal
+        visible={editorOpen}
+        workout={editingWorkout}
+        onClose={() => {
+          setEditorOpen(false);
+          setEditingWorkout(null);
+        }}
+      />
     </SafeAreaView>
   );
 }

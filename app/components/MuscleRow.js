@@ -4,29 +4,30 @@ import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Feather } from '@expo/vector-icons';
 import { relativeFromNow, restStatusColor, isRested } from '../utils/timeUtils';
 import { useAppState } from '../hooks/useAppState';
-import { lastWorkedAt as lastWorkedAtFor } from '../utils/statsUtils';
+import WorkoutSwipeRow from './WorkoutSwipeRow';
+import { buildTargetSummary } from '../utils/workoutDisplay';
 
-function MuscleRow({ muscle, lastWorkedAt, hoursSince, onLog, onTap }) {
+function MuscleRow({
+  muscle,
+  lastWorkedAt,
+  hoursSince,
+  onLog,
+  onTap,
+  onLogWorkout,
+  onEditWorkout,
+  onDeleteWorkout,
+}) {
   const swipeableRef = useRef(null);
   const closeSwipe = () => swipeableRef.current?.close();
-  const { workoutLog } = useAppState();
+  const { workouts, muscleGroups } = useAppState();
   const [expanded, setExpanded] = useState(false);
 
-  const hasSubGroups = (muscle.subGroups || []).length > 0;
+  const muscleWorkouts = (workouts || []).filter((w) =>
+    w.muscleGroupIds?.includes(muscle.id)
+  );
 
   const rested = isRested(lastWorkedAt, muscle.recommendedRestHours);
   const dotColor = lastWorkedAt ? restStatusColor(lastWorkedAt, muscle.recommendedRestHours) : '#7f8c8d';
-
-  const subGroupRows = expanded && hasSubGroups
-    ? muscle.subGroups.map((sg) => {
-        const direct = lastWorkedAtFor(workoutLog, sg.id);
-        const effective =
-          direct && lastWorkedAt
-            ? new Date(direct) > new Date(lastWorkedAt) ? direct : lastWorkedAt
-            : direct || lastWorkedAt;
-        return { ...sg, lastWorkedAt: effective };
-      })
-    : [];
 
   const handleLog = () => {
     Alert.alert(
@@ -47,11 +48,7 @@ function MuscleRow({ muscle, lastWorkedAt, hoursSince, onLog, onTap }) {
   };
 
   const handlePress = () => {
-    if (hasSubGroups) {
-      setExpanded((e) => !e);
-    } else {
-      onTap();
-    }
+    setExpanded((e) => !e);
   };
 
   return (
@@ -89,40 +86,33 @@ function MuscleRow({ muscle, lastWorkedAt, hoursSince, onLog, onTap }) {
               ? `${hoursSince < 24 ? hoursSince.toFixed(1) + 'h' : Math.floor(hoursSince / 24) + 'd'}`
               : '∞'}
           </Text>
-          {hasSubGroups && (
-            <Feather
-              name={expanded ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color="#888"
-              style={styles.chevron}
-            />
-          )}
+          <Feather
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color="#888"
+            style={styles.chevron}
+          />
         </TouchableOpacity>
 
-        {expanded && subGroupRows.length > 0 && (
-          <View style={styles.subGroupCard}>
-            {subGroupRows.map((sg, i) => {
-              const sgDot = sg.lastWorkedAt
-                ? restStatusColor(sg.lastWorkedAt, muscle.recommendedRestHours)
-                : '#7f8c8d';
-              return (
-                <View
-                  key={sg.id}
-                  style={[
-                    styles.subGroupRow,
-                    i < subGroupRows.length - 1 && styles.subGroupDivider,
-                  ]}
-                >
-                  <View style={[styles.subDot, { backgroundColor: sgDot }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.subName}>{sg.name}</Text>
-                    <Text style={styles.subSub}>
-                      {sg.lastWorkedAt ? relativeFromNow(sg.lastWorkedAt) : 'never logged'}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
+        {expanded && (
+          <View style={styles.workoutsCard}>
+            {muscleWorkouts.length === 0 ? (
+              <View style={styles.emptyRow}>
+                <Text style={styles.emptyText}>No workouts yet · long-press to add</Text>
+              </View>
+            ) : (
+              muscleWorkouts.map((w, i) => (
+                <WorkoutSwipeRow
+                  key={w.id}
+                  workout={w}
+                  isLast={i === muscleWorkouts.length - 1}
+                  targetSummary={buildTargetSummary(w, muscleGroups)}
+                  onLog={() => onLogWorkout && onLogWorkout(w)}
+                  onEdit={() => onEditWorkout && onEditWorkout(w)}
+                  onDelete={() => onDeleteWorkout && onDeleteWorkout(w.id)}
+                />
+              ))
+            )}
           </View>
         )}
       </View>
@@ -181,40 +171,21 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: 8,
   },
-  subGroupCard: {
+  workoutsCard: {
     backgroundColor: 'white',
     borderRadius: 14,
     marginHorizontal: 12,
     marginTop: -2,
     marginBottom: 4,
     paddingHorizontal: 14,
-    paddingTop: 4,
+    overflow: 'hidden',
   },
-  subGroupRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
+  emptyRow: {
+    paddingVertical: 14,
   },
-  subGroupDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  subDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 12,
-    marginLeft: 18,
-  },
-  subName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111',
-  },
-  subSub: {
-    fontSize: 11,
-    color: '#888',
-    marginTop: 2,
+  emptyText: {
+    color: '#999',
+    fontSize: 13,
   },
 });
 
