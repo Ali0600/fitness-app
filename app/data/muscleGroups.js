@@ -168,6 +168,38 @@ export const DEFAULT_WORKOUTS = [
     defaultSets: setsOf(3, 15),
     isSeed: true,
   },
+  // Biceps
+  {
+    id: 'db_bicep_curl',
+    name: 'Dumbbell Bicep Curl',
+    muscleGroupIds: [
+      'biceps', 'biceps_long', 'biceps_short',
+    ],
+    defaultSets: setsOf(3, 12),
+    isSeed: true,
+  },
+  {
+    id: 'db_bicep_hammer',
+    name: 'Dumbbell Hammer Curl',
+    muscleGroupIds: [
+      'biceps', 'brachialis', 'biceps_long',
+      'forearms', 'brachioradialis',
+    ],
+    defaultSets: setsOf(3, 10),
+    isSeed: true,
+  },
+  // Legs
+  {
+    id: 'bb_squat',
+    name: 'Barbell Back Squat',
+    muscleGroupIds: [
+      'quads', 'rectus_femoris', 'vastus_lateralis', 'vastus_medialis', 'vastus_intermedius',
+      'glutes', 'glute_max', 'glute_med',
+      'lower_back', 'erector_spinae',
+    ],
+    defaultSets: setsOf(3, 8),
+    isSeed: true,
+  },
 ];
 
 export const DEFAULT_SETTINGS = {
