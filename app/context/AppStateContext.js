@@ -9,6 +9,8 @@ import {
 
 export const AppStateContext = createContext();
 
+// Bump only when forcibly replacing or removing seeded workouts. Pure additions
+// to DEFAULT_WORKOUTS flow in via the additive merge below without a bump.
 const CURRENT_STATE_VERSION = 7;
 
 function mergeWithDefaults(loaded) {
@@ -26,11 +28,23 @@ function mergeWithDefaults(loaded) {
 
   const loadedVersion = loaded.version ?? 1;
   let workouts = Array.isArray(loaded.workouts) ? loaded.workouts : DEFAULT_WORKOUTS;
+  let dismissedSeedIds = Array.isArray(loaded.dismissedSeedIds) ? loaded.dismissedSeedIds : [];
+
   if (loadedVersion < CURRENT_STATE_VERSION) {
-    // Re-seed isSeed:true workouts on every state-version bump,
-    // preserving user-created (isSeed:false) workouts.
+    // Forced re-seed: replace all seeded workouts, preserve user-created ones,
+    // and clear past dismissals (the seed catalog itself changed).
     const userCreated = workouts.filter((w) => !w.isSeed);
     workouts = [...userCreated, ...DEFAULT_WORKOUTS];
+    dismissedSeedIds = [];
+  } else {
+    // Additive: pull in any new DEFAULT_WORKOUTS the user hasn't already received
+    // and hasn't dismissed via swipe-delete.
+    const existingIds = new Set(workouts.map((w) => w.id));
+    const dismissedSet = new Set(dismissedSeedIds);
+    const additions = DEFAULT_WORKOUTS.filter(
+      (w) => !existingIds.has(w.id) && !dismissedSet.has(w.id)
+    );
+    if (additions.length > 0) workouts = [...workouts, ...additions];
   }
 
   return {
@@ -38,6 +52,7 @@ function mergeWithDefaults(loaded) {
     muscleGroups,
     workoutLog: Array.isArray(loaded.workoutLog) ? loaded.workoutLog : [],
     workouts,
+    dismissedSeedIds,
     settings: { ...DEFAULT_SETTINGS, ...(loaded.settings || {}) },
   };
 }
@@ -139,10 +154,19 @@ export const AppStateProvider = ({ children }) => {
   }, []);
 
   const deleteWorkout = useCallback((workoutId) => {
-    setState((prev) => ({
-      ...prev,
-      workouts: prev.workouts.filter((w) => w.id !== workoutId),
-    }));
+    setState((prev) => {
+      const target = prev.workouts.find((w) => w.id === workoutId);
+      const dismissed = prev.dismissedSeedIds || [];
+      const nextDismissed =
+        target?.isSeed && !dismissed.includes(workoutId)
+          ? [...dismissed, workoutId]
+          : dismissed;
+      return {
+        ...prev,
+        workouts: prev.workouts.filter((w) => w.id !== workoutId),
+        dismissedSeedIds: nextDismissed,
+      };
+    });
   }, []);
 
   const setRecommendedRestHours = useCallback((muscleId, hours) => {

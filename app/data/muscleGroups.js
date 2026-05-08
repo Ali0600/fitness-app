@@ -182,5 +182,6 @@ export const DEFAULT_STATE = {
   muscleGroups: DEFAULT_MUSCLE_GROUPS,
   workoutLog: [],
   workouts: DEFAULT_WORKOUTS,
+  dismissedSeedIds: [],
   settings: DEFAULT_SETTINGS,
 };
