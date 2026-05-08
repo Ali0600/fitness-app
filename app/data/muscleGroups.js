@@ -158,6 +158,16 @@ export const DEFAULT_WORKOUTS = [
     defaultSets: setsOf(3, 10),
     isSeed: true,
   },
+  // Calves
+  {
+    id: 'db_calf_raise',
+    name: 'Dumbbell Calf Raise',
+    muscleGroupIds: [
+      'calves', 'gastrocnemius', 'soleus',
+    ],
+    defaultSets: setsOf(3, 15),
+    isSeed: true,
+  },
 ];
 
 export const DEFAULT_SETTINGS = {
@@ -168,7 +178,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_STATE = {
-  version: 6,
+  version: 7,
   muscleGroups: DEFAULT_MUSCLE_GROUPS,
   workoutLog: [],
   workouts: DEFAULT_WORKOUTS,
